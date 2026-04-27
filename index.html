@@ -829,14 +829,10 @@ async function pullAll() {
       const tg = { ...temps }; // start with local
       remoteTemps.forEach(r => {
         if (!r.sala) return;
-        // Fix date: Sheets may return a Date object or ISO string like "2026-3-27T..."
+        // Fix date from Sheets: may be ISO string or Date serial
         let dateStr = String(r.date || '');
-        if (dateStr.includes('T')) dateStr = dateStr.split('T')[0]; // "2026-3-27"
-        // Normalize to dk() format: "2026-3-27" (year-month-day no leading zeros)
-        const dateParts = dateStr.split('-');
-        if (dateParts.length === 3) {
-          dateStr = dateParts[0] + '-' + (parseInt(dateParts[1])-1) + '-' + dateParts[2];
-        }
+        if (dateStr.includes('T')) dateStr = dateStr.split('T')[0]; // strip time
+        // dateStr is now "2026-4-27" — matches dk() format after fix
         const key = 's' + r.sala + '_' + dateStr;
         if (!tg[key]) tg[key] = [];
         // Only add if not already present (avoid duplicates)
@@ -863,8 +859,6 @@ async function pullAll() {
           // Fix date key from Sheets
           let d = String(r.date);
           if (d.includes('T')) d = d.split('T')[0];
-          const p = d.split('-');
-          if (p.length === 3) d = p[0]+'-'+(parseInt(p[1])-1)+'-'+p[2];
           ag[d] = { who: r.who, motivo: r.motivo, obs: r.obs };
         }
       });
@@ -953,7 +947,7 @@ let ausencias= safeParse('m4-aus',     {});
 let corrFilter='TODOS',comprasView='pendientes',prevView='david';
 let derivTarget=null,turnoEstado='bien';
 
-function dk(){const n=new Date();return `${n.getFullYear()}-${n.getMonth()}-${n.getDate()}`;}
+function dk(){const n=new Date();return `${n.getFullYear()}-${n.getMonth()+1}-${n.getDate()}`;}
 function ns(){const n=new Date();return `${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`;}
 function nf(){const n=new Date();return `${n.getDate()}/${n.getMonth()+1} ${ns()} hs`;}
 function save(){
@@ -1012,7 +1006,7 @@ function canReport(){return !isExec()||true;} // everyone can report
 // ════════════════════════════════════════════════════════════════════════════
 function buildLogin(){
   // Clear any corrupted localStorage from old versions
-  const APP_VERSION = 'v4.1';
+  const APP_VERSION = 'v4.2'; // bump clears old localStorage with wrong month
   if (localStorage.getItem('m4-version') !== APP_VERSION) {
     ['m4-checks','m4-corrs','m4-temps','m4-compras','m4-turnos','m4-obs','m4-aus','m4-extras','m4-prevs'].forEach(k => {
       try { localStorage.removeItem(k); } catch(e) {}
