@@ -13,7 +13,7 @@
 :root{
   --bg:#080812;--s1:#13131f;--s2:#1a1a2a;--s3:#222235;--s4:#2a2a40;
   --b1:#ffffff0e;--b2:#ffffff18;--b3:#ffffff28;--b4:#ffffff40;
-  --t1:#eaeaf5;--t2:#8080a8;--t3:#4a4a70;--t4:#2a2a48;
+  --t1:#eaeaf5;--t2:#a8a8cc;--t3:#7878a8;--t4:#4a4a70;
   --red:#ff4455;--rbg:#ff445512;--rbd:#ff445535;
   --ora:#ff9830;--obg:#ff983012;--obd:#ff983035;
   --yel:#f5c030;--ybg:#f5c03012;--ybd:#f5c03035;
@@ -28,17 +28,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fn)
 
 /* LOGIN */
 #ls{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;z-index:1000;overflow-y:auto;}
-.ll{font-size:10px;letter-spacing:0.3em;color:var(--t3);text-transform:uppercase;margin-bottom:4px;}
+.ll{font-size:10px;letter-spacing:0.3em;color:#9090c0;text-transform:uppercase;margin-bottom:4px;}
 .lt{font-size:22px;font-weight:600;color:var(--t1);text-align:center;margin-bottom:2px;}
-.ls{font-size:11px;color:var(--t2);margin-bottom:20px;text-align:center;}
+.ls{font-size:11px;color:#b8b8d8;margin-bottom:20px;text-align:center;}
 .ug{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-width:310px;margin-bottom:14px;}
 .ub{background:var(--s1);border:0.5px solid var(--b2);border-radius:11px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:border-color 0.15s,background 0.15s;}
 .ub.sel{border-color:var(--acc);background:var(--bbg);}
 .ua{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;}
 .un{font-size:11px;font-weight:500;color:var(--t1);}
-.ur{font-size:9px;color:var(--t3);text-align:center;}
+.ur{font-size:9px;color:#9090c0;text-align:center;}
 .pa{width:100%;max-width:310px;}
-.pl{font-size:11px;color:var(--t3);margin-bottom:5px;text-align:center;}
+.pl{font-size:11px;color:#9090c0;margin-bottom:5px;text-align:center;}
 .pi{width:100%;background:var(--s1);border:0.5px solid var(--b2);border-radius:11px;padding:12px;font-size:20px;font-family:var(--mo);color:var(--t1);text-align:center;letter-spacing:0.4em;outline:none;}
 .pi:focus{border-color:var(--acc);}
 .lb{width:100%;max-width:310px;margin-top:8px;background:var(--acc);color:#fff;border:none;border-radius:11px;padding:12px;font-size:14px;font-weight:500;font-family:var(--fn);cursor:pointer;}
@@ -48,7 +48,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fn)
 #app{height:100%;display:flex;flex-direction:column;display:none;}
 .tb{background:var(--s1);border-bottom:0.5px solid var(--b1);padding:8px 13px 7px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .tbl{display:flex;flex-direction:column;}
-.tg{font-size:9px;color:var(--t3);}
+.tg{font-size:9px;color:#9090c0;}
 .tn2{font-size:14px;font-weight:600;color:var(--t1);}
 .tr{display:flex;align-items:center;gap:7px;}
 .nd{width:6px;height:6px;border-radius:50%;background:var(--red);}
@@ -62,12 +62,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fn)
 /* NAV */
 .bn{display:flex;background:#111120;border-top:0.5px solid #ffffff1a;padding:5px 0 max(5px,env(safe-area-inset-bottom));flex-shrink:0;}
 .nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:none;cursor:pointer;padding:2px 1px;}
-.ni{font-size:14px;line-height:1.3;color:#606090;}
-.nl{font-size:8px;color:#505080;font-family:var(--fn);white-space:nowrap;}
+.ni{font-size:14px;line-height:1.3;color:#c0c0e0;}
+.nl{font-size:8px;color:#a0a0cc;font-family:var(--fn);white-space:nowrap;}
 .nb.on .ni,.nb.on .nl{color:var(--ac2);}
 
 /* GENERICS */
-.sh{font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.12em;margin:15px 0 6px;}
+.sh{font-size:9px;font-weight:700;color:#9090c0;text-transform:uppercase;letter-spacing:0.12em;margin:15px 0 6px;}
 .sh:first-child{margin-top:0;}
 .card{background:var(--s1);border:0.5px solid var(--b1);border-radius:12px;padding:10px 11px;margin-bottom:6px;}
 .card.lu{border-left:3px solid var(--red);}
@@ -84,7 +84,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fn)
 .bg2{background:var(--gbg);color:var(--grn);}
 .bb2{background:var(--bbg);color:var(--blg);}
 .bp{background:var(--pbg);color:var(--pur);}
-.bgr{background:var(--s3);color:var(--t2);}
+.bgr{background:var(--s3);color:#b8b8d8;}
 .bt2{background:var(--tbg);color:var(--tea);}
 .tr2{display:flex;align-items:flex-start;gap:8px;}
 .ck{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--b2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all 0.15s;}
@@ -92,8 +92,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fn)
 .ck svg{width:10px;height:10px;stroke:#fff;stroke-width:2.5;fill:none;opacity:0;}
 .ck.on svg{opacity:1;}
 .tk{font-size:12px;font-weight:500;color:var(--t1);line-height:1.3;}
-.tk.st{text-decoration:line-through;color:var(--t3);}
-.tm{font-size:10px;color:var(--t2);margin-top:2px;line-height:1.4;}
+.tk.st{text-decoration:line-through;color:#9090c0;}
+.tm{font-size:10px;color:#b0b0d0;margin-top:2px;line-height:1.4;}
 .tgs{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
 .sp{height:0.5px;background:var(--b1);margin:8px 0;}
 
@@ -102,16 +102,16 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fn)
 .sb{background:var(--s1);border:0.5px solid var(--b1);border-radius:10px;padding:9px 7px;text-align:center;cursor:pointer;transition:background 0.15s;}
 .sb:active{background:var(--s2);}
 .sn{font-size:22px;font-weight:600;line-height:1;}
-.sl{font-size:9px;color:var(--t2);margin-top:4px;line-height:1.3;font-weight:500;}
+.sl{font-size:9px;color:#c8c8e8;margin-top:4px;line-height:1.3;font-weight:600;}
 
 /* ALERT */
 .ac{background:var(--rbg);border:0.5px solid var(--rbd);border-radius:11px;padding:9px 11px;margin-bottom:6px;}
 .at{font-size:12px;font-weight:600;color:var(--red);}
-.ab{font-size:10px;color:var(--t2);margin-top:2px;}
+.ab{font-size:10px;color:#c8c8e0;margin-top:2px;}
 .aa{display:flex;gap:5px;margin-top:7px;}
 .bs{flex:1;border:none;border-radius:7px;padding:6px 4px;font-size:10px;font-weight:500;cursor:pointer;font-family:var(--fn);}
 .bs-a{background:var(--acc);color:#fff;}
-.bs-g{background:var(--s2);color:var(--t2);}
+.bs-g{background:var(--s2);color:#c0c0e0;}
 .bs-gr{background:var(--gbg);color:var(--grn);border:0.5px solid var(--gbd);}
 .bs-r{background:var(--rbg);color:var(--red);border:0.5px solid var(--rbd);}
 .bs-p{background:var(--pbg);color:var(--pur);border:0.5px solid var(--pbd);}
@@ -119,7 +119,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fn)
 
 /* FORMS */
 .f{margin-bottom:9px;}
-.f label{display:block;font-size:10px;color:var(--t3);margin-bottom:4px;}
+.f label{display:block;font-size:10px;color:#9898c8;margin-bottom:4px;font-weight:500;}
 .f input,.f select,.f textarea{width:100%;background:var(--s1);border:0.5px solid var(--b2);border-radius:9px;padding:9px 10px;font-size:12px;color:var(--t1);font-family:var(--fn);outline:none;}
 .f input:focus,.f select:focus,.f textarea:focus{border-color:var(--acc);}
 .f select{appearance:none;}
@@ -132,16 +132,16 @@ select option{background:#1a1a2a;}
 .uo.up.su{border-color:var(--ora);background:var(--obg);}
 .uo.un.su{border-color:var(--yel);background:var(--ybg);}
 .un2{font-size:10px;font-weight:500;color:var(--t1);}
-.us{font-size:8px;color:var(--t3);margin-top:1px;}
+.us{font-size:8px;color:#9090c0;margin-top:1px;}
 .uo.uu.su .un2{color:var(--red);}
 .uo.up.su .un2{color:var(--ora);}
 .uo.un.su .un2{color:var(--yel);}
 .cw{display:flex;flex-wrap:wrap;gap:5px;}
-.ch{padding:4px 9px;border-radius:20px;font-size:10px;border:0.5px solid var(--b2);background:var(--s1);color:var(--t2);cursor:pointer;}
+.ch{padding:4px 9px;border-radius:20px;font-size:10px;border:0.5px solid var(--b2);background:var(--s1);color:#b0b0d0;cursor:pointer;}
 .ch.sc{background:var(--s2);color:var(--t1);border-color:var(--acc);}
 .sb2{width:100%;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:500;font-family:var(--fn);cursor:pointer;margin-top:7px;}
 .tr3{display:flex;background:var(--s1);border-radius:8px;padding:2px;margin-bottom:9px;}
-.to{flex:1;padding:5px;text-align:center;font-size:10px;border:none;background:none;color:var(--t2);border-radius:6px;cursor:pointer;font-family:var(--fn);}
+.to{flex:1;padding:5px;text-align:center;font-size:10px;border:none;background:none;color:#c0c0e0;border-radius:6px;cursor:pointer;font-family:var(--fn);}
 .to.st{background:var(--s3);color:var(--t1);}
 
 /* MODAL */
@@ -158,23 +158,23 @@ select option{background:#1a1a2a;}
 .te:last-child{border-bottom:none;}
 .tt{font-size:11px;font-weight:500;font-family:var(--mo);min-width:40px;color:var(--ac2);}
 .tv{font-size:14px;font-weight:500;font-family:var(--mo);min-width:46px;}
-.tc{font-size:10px;color:var(--t2);flex:1;}
-.tw{font-size:9px;color:var(--t3);}
+.tc{font-size:10px;color:#b8b8d8;flex:1;}
+.tw{font-size:9px;color:#9090c0;}
 .ta2{width:100%;background:var(--s2);border:0.5px solid var(--b2);border-radius:8px;padding:8px;color:var(--ac2);font-size:11px;font-family:var(--fn);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;margin-top:7px;}
 .tal{background:var(--obg);border:0.5px solid var(--obd);border-radius:8px;padding:7px 9px;font-size:10px;color:var(--ora);margin-bottom:7px;display:flex;align-items:center;gap:5px;}
 
 /* BITACORA */
 .be{background:var(--s2);border-radius:8px;padding:7px 9px;margin-bottom:5px;}
-.bw{font-size:9px;color:var(--t3);}
+.bw{font-size:9px;color:#9090c0;}
 .bwho{font-size:9px;color:var(--ac2);font-weight:500;}
 .bt3{font-size:11px;color:var(--t1);margin-top:2px;line-height:1.4;}
-.ex{display:inline-block;background:var(--s3);border:0.5px solid var(--b2);border-radius:7px;padding:3px 7px;font-size:10px;color:var(--t2);margin:2px;cursor:pointer;}
+.ex{display:inline-block;background:var(--s3);border:0.5px solid var(--b2);border-radius:7px;padding:3px 7px;font-size:10px;color:#c0c0e0;margin:2px;cursor:pointer;}
 
 /* COMPRAS */
 .cc2{background:var(--s1);border:0.5px solid var(--b1);border-radius:11px;padding:9px 11px;margin-bottom:6px;cursor:pointer;}
 .ct{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
 .cn{font-size:12px;font-weight:500;color:var(--t1);margin-top:2px;}
-.cm{font-size:10px;color:var(--t2);margin-top:2px;}
+.cm{font-size:10px;color:#b0b0d0;margin-top:2px;}
 .fp{width:100%;height:75px;border-radius:7px;object-fit:cover;margin-top:5px;display:none;}
 .fp.on{display:block;}
 .fb{width:100%;background:var(--s2);border:0.5px solid var(--b2);border-radius:8px;padding:8px;color:var(--blg);font-size:11px;font-family:var(--fn);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;margin-top:4px;}
@@ -184,24 +184,24 @@ select option{background:#1a1a2a;}
 .smf-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--b1);}
 .smf-row:last-child{border-bottom:none;}
 .smf-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.smf-name{font-size:12px;font-weight:500;color:var(--t1);flex:1;}
+.smf-name{font-size:12px;font-weight:600;color:#eaeaf5;flex:1;}
 .smf-pct{font-size:12px;font-weight:600;font-family:var(--mo);}
 .smf-bar{height:4px;border-radius:2px;margin-top:3px;transition:width 0.4s;}
 .smf-bg{height:4px;background:var(--s3);border-radius:2px;margin-top:4px;}
 .week-box{background:var(--s2);border-radius:9px;padding:10px 8px;text-align:center;flex:1;cursor:pointer;transition:background 0.15s;border:0.5px solid var(--b1);}
 .week-box:active{background:var(--s3);}
 .week-n{font-size:22px;font-weight:600;line-height:1;}
-.week-l{font-size:10px;color:#ffffff;font-weight:500;margin-top:3px;}
+.week-l{font-size:10px;color:#ffffff;font-weight:600;margin-top:3px;letter-spacing:0.02em;}
 
 /* FIRMA */
 .firma-card{background:linear-gradient(135deg,var(--s2),var(--s1));border:0.5px solid var(--b2);border-radius:12px;padding:11px;margin-bottom:6px;}
 .firma-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .firma-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;}
 .firma-who{font-size:12px;font-weight:500;color:var(--t1);}
-.firma-when{font-size:10px;color:var(--t3);}
+.firma-when{font-size:10px;color:#9898c0;}
 .firma-section{margin-bottom:6px;}
-.firma-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:3px;}
-.firma-text{font-size:11px;color:var(--t2);line-height:1.4;}
+.firma-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9090c0;margin-bottom:3px;}
+.firma-text{font-size:11px;color:#b8b8d8;line-height:1.4;}
 .firma-urgente{background:var(--rbg);border:0.5px solid var(--rbd);border-radius:7px;padding:5px 8px;font-size:11px;color:var(--red);}
 
 /* OBSERVACIONES */
@@ -209,24 +209,24 @@ select option{background:#1a1a2a;}
 .obs-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
 .obs-who{font-size:10px;font-weight:500;color:var(--ac2);}
 .obs-cat{font-size:9px;padding:2px 6px;border-radius:10px;}
-.obs-time{font-size:9px;color:var(--t3);}
+.obs-time{font-size:9px;color:#9090c0;}
 .obs-text{font-size:11px;color:var(--t1);line-height:1.4;}
 
 /* ADMIN */
 .aur{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--b1);}
 .aui{flex:1;}
 .aun{font-size:12px;font-weight:500;color:var(--t1);}
-.aurl{font-size:9px;color:var(--t3);}
+.aurl{font-size:9px;color:#9090c0;}
 .as2{background:var(--s2);border-radius:9px;padding:9px 10px;margin-bottom:7px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
 .ast{font-size:12px;font-weight:500;color:var(--t1);}
-.ass{font-size:10px;color:var(--t3);margin-top:1px;}
+.ass{font-size:10px;color:#9090c0;margin-top:1px;}
 
 /* DERIVAR */
 .dt{display:flex;align-items:center;gap:7px;padding:8px 9px;border-radius:9px;border:0.5px solid var(--b2);background:var(--s1);cursor:pointer;margin-bottom:4px;}
 .dt.sel{border-color:var(--acc);background:var(--bbg);}
 .dav{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;}
 .dn{font-size:11px;font-weight:500;color:var(--t1);}
-.dr{font-size:9px;color:var(--t3);}
+.dr{font-size:9px;color:#9090c0;}
 
 /* DASHBOARD */
 .dash-card{background:var(--s1);border:0.5px solid var(--b1);border-radius:11px;padding:10px;margin-bottom:7px;}
@@ -234,7 +234,7 @@ select option{background:#1a1a2a;}
 .dash-row{display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:0.5px solid var(--b1);}
 .dash-row:last-child{border-bottom:none;}
 .dash-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0;}
-.dash-name{font-size:11px;color:var(--t1);flex:1;}
+.dash-name{font-size:11px;color:#e0e0f5;flex:1;}
 .dash-val{font-size:11px;font-weight:600;font-family:var(--mo);}
 .dash-bar-bg{height:3px;background:var(--s3);border-radius:2px;flex:1;}
 .dash-bar{height:3px;border-radius:2px;}
@@ -243,7 +243,7 @@ select option{background:#1a1a2a;}
 .rec-card{background:var(--ybg);border:0.5px solid var(--ybd);border-radius:10px;padding:8px 10px;margin-bottom:5px;display:flex;align-items:flex-start;gap:8px;}
 .rec-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
 .rec-task{font-size:11px;font-weight:500;color:var(--t1);}
-.rec-sub{font-size:10px;color:var(--t2);margin-top:1px;}
+.rec-sub{font-size:10px;color:#b8b8d8;margin-top:1px;}
 .rec-period{font-size:9px;color:var(--yel);font-weight:600;margin-top:3px;}
 
 .toast2{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:var(--s2);border:0.5px solid var(--b3);color:var(--t1);padding:8px 15px;border-radius:20px;font-size:11px;font-weight:500;z-index:999;opacity:0;transition:opacity 0.25s;pointer-events:none;white-space:nowrap;}
@@ -257,7 +257,7 @@ select option{background:#1a1a2a;}
 <div id="ls">
   <div class="ll">Teatro Metropolitan</div>
   <div class="lt">Mantenimiento</div>
-  <div class="ls2" style="font-size:11px;color:var(--t2);margin-bottom:20px;text-align:center;">Seleccioná tu usuario e ingresá tu PIN</div>
+  <div class="ls2" style="font-size:11px;color:#c0c0e0;margin-bottom:20px;text-align:center;">Seleccioná tu usuario e ingresá tu PIN</div>
   <div class="ug" id="ugrid"></div>
   <div class="pa">
     <div class="pl">PIN de acceso</div>
@@ -270,12 +270,8 @@ select option{background:#1a1a2a;}
 <!-- APP -->
 <div id="app">
   <div style="background:#1a0a00;border-bottom:0.5px solid #ff983040;padding:4px 13px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;" id="beta-banner">
-    <span style="font-size:9px;color:var(--ora);font-weight:600;letter-spacing:0.05em;">VERSIÓN BETA · DATOS DE EJEMPLO</span>
-    <button onclick="document.getElementById('beta-banner').style.display='none'" style="background:none;border:none;color:var(--t3);font-size:10px;cursor:pointer;">✕</button>
-  </div>
-  <div style="background:#1a0a00;border-bottom:0.5px solid #ff983040;padding:4px 13px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;" id="beta-banner">
     <span style="font-size:9px;color:#ff9830;font-weight:600;letter-spacing:0.05em;">BETA · Datos de ejemplo activos</span>
-    <button onclick="document.getElementById('beta-banner').style.display='none'" style="background:none;border:none;color:#4a4a70;font-size:10px;cursor:pointer;">✕</button>
+    <button onclick="document.getElementById('beta-banner').style.display='none'" style="background:none;border:none;color:#9090c0;font-size:10px;cursor:pointer;">✕</button>
   </div>
   <div class="tb">
     <div class="tbl">
@@ -448,7 +444,7 @@ select option{background:#1a1a2a;}
 <div class="mo" id="mo-deriv" onclick="cmo(event,'mo-deriv')">
   <div class="ms"><div class="mh"></div><div class="mt2">Derivar tarea</div>
     <input type="hidden" id="deriv-id"/>
-    <div style="font-size:10px;color:var(--t3);margin-bottom:7px;">¿A quién derivás esta tarea?</div>
+    <div style="font-size:10px;color:#9090c0;margin-bottom:7px;">¿A quién derivás esta tarea?</div>
     <div id="deriv-targets"></div>
     <div class="f" style="margin-top:7px;"><label>Motivo (obligatorio)</label><textarea id="deriv-m" placeholder="Explicá por qué derivás..."></textarea></div>
     <div class="ma"><button class="bs bs-g" onclick="closeM('mo-deriv')">Cancelar</button><button class="bs bs-p" onclick="confirmDeriv()">Derivar</button></div>
@@ -459,7 +455,7 @@ select option{background:#1a1a2a;}
   <div class="ms"><div class="mh"></div><div class="mt2" id="mo-temp-t">Temperatura</div>
     <div class="f"><label>Temperatura (°C)</label><input type="number" id="tval" placeholder="22" min="0" max="50" step="0.5"/></div>
     <div class="f"><label>Contexto</label><select id="tctx"><option>Sala vacía – sin función</option><option>Pre-función (apertura de puertas)</option><option>Función 1 – inicio</option><option>Función 1 – llena</option><option>Recambio de función</option><option>Función 2 – inicio</option><option>Función 2 – llena</option><option>Función 3 – inicio</option><option>Función 3 – llena</option><option>Post-función</option></select></div>
-    <div style="font-size:10px;color:var(--t3);margin-bottom:9px;">Hora registrada automáticamente.</div>
+    <div style="font-size:10px;color:#9090c0;margin-bottom:9px;">Hora registrada automáticamente.</div>
     <div class="ma"><button class="bs bs-g" onclick="closeM('mo-temp')">Cancelar</button><button class="bs bs-a" onclick="saveTemp()">Guardar</button></div>
   </div>
 </div>
@@ -498,8 +494,8 @@ select option{background:#1a1a2a;}
     <div class="f"><label>Estado general del teatro hoy</label>
       <div style="display:flex;gap:5px;">
         <button class="estado-btn" data-v="bien" onclick="selEstado(this)" style="flex:1;padding:7px;border-radius:8px;border:1px solid var(--gbd);background:var(--gbg);color:var(--grn);font-size:11px;cursor:pointer;font-family:var(--fn);">✓ Bien</button>
-        <button class="estado-btn" data-v="regular" onclick="selEstado(this)" style="flex:1;padding:7px;border-radius:8px;border:1px solid var(--b2);background:var(--s1);color:var(--t2);font-size:11px;cursor:pointer;font-family:var(--fn);">~ Regular</button>
-        <button class="estado-btn" data-v="mal" onclick="selEstado(this)" style="flex:1;padding:7px;border-radius:8px;border:1px solid var(--b2);background:var(--s1);color:var(--t2);font-size:11px;cursor:pointer;font-family:var(--fn);">✗ Con problemas</button>
+        <button class="estado-btn" data-v="regular" onclick="selEstado(this)" style="flex:1;padding:7px;border-radius:8px;border:1px solid var(--b2);background:var(--s1);color:#b8b8d8;font-size:11px;cursor:pointer;font-family:var(--fn);">~ Regular</button>
+        <button class="estado-btn" data-v="mal" onclick="selEstado(this)" style="flex:1;padding:7px;border-radius:8px;border:1px solid var(--b2);background:var(--s1);color:#b8b8d8;font-size:11px;cursor:pointer;font-family:var(--fn);">✗ Con problemas</button>
       </div>
     </div>
     <div class="ma"><button class="bs bs-g" onclick="closeM('mo-turno')">Cancelar</button><button class="bs bs-a" onclick="firmarTurno()">Firmar turno</button></div>
@@ -553,14 +549,14 @@ select option{background:#1a1a2a;}
       <input type="date" id="et-fecha"/>
     </div>
     <div class="f">
-      <label>Próxima fecha programada <span style="font-size:9px;color:var(--t3);">(opcional – para tareas con fecha de vencimiento)</span></label>
+      <label>Próxima fecha programada <span style="font-size:9px;color:#9090c0;">(opcional – para tareas con fecha de vencimiento)</span></label>
       <input type="date" id="et-proxima"/>
     </div>
     <div class="f"><label>Notas / Instrucciones para ejecutores</label>
       <textarea id="et-notas" placeholder="Instrucciones específicas, herramientas necesarias, proveedores, contactos..."></textarea>
     </div>
     <div class="f"><label>Reporta a</label><select id="et-rep"><option>Ariel Koczak</option><option>Carla Carrieri</option><option>Guillermo</option><option>Mano S.</option><option>Jon</option></select></div>
-    <div style="background:var(--s2);border-radius:8px;padding:8px 10px;font-size:10px;color:var(--t3);margin-bottom:4px;">
+    <div style="background:var(--s2);border-radius:8px;padding:8px 10px;font-size:10px;color:#9090c0;margin-bottom:4px;">
       Las tareas preventivas con periodicidad se reactivarán automáticamente cuando venza el período definido.
     </div>
     <div class="ma"><button class="bs bs-g" onclick="closeM('mo-edittask')">Cancelar</button><button class="bs bs-a" onclick="saveTask()">Guardar</button></div>
@@ -580,7 +576,7 @@ select option{background:#1a1a2a;}
 <!-- MODAL: AGREGAR TAREA EXTRA (no planificada) -->
 <div class="mo" id="mo-addextra" onclick="cmo(event,'mo-addextra')">
   <div class="ms"><div class="mh"></div><div class="mt2">Agregar tarea no planificada</div>
-    <div style="font-size:10px;color:var(--t3);margin-bottom:8px;line-height:1.5;">Registrá algo que hiciste o que te surgió y no estaba en el plan: mejora, limpieza extra, relevamiento, pedido, reparación chica, etc.</div>
+    <div style="font-size:10px;color:#9090c0;margin-bottom:8px;line-height:1.5;">Registrá algo que hiciste o que te surgió y no estaba en el plan: mejora, limpieza extra, relevamiento, pedido, reparación chica, etc.</div>
     <div class="f"><label>¿Qué hiciste?</label><textarea id="ex-desc" placeholder="ej: Limpié el fondo del escenario, revisé la instalación del baño VIP, reacomodé el depósito..."></textarea></div>
     <div class="f"><label>Categoría</label>
       <select id="ex-cat"><option>Limpieza extra</option><option>Relevamiento / Inspección</option><option>Mejora / Pequeña reparación</option><option>Pedido / Compra</option><option>Coordinación</option><option>Otro</option></select>
@@ -839,7 +835,7 @@ function buildHome(){
   document.getElementById('hsemiforo-mini').innerHTML=`
     <div class="sh" style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;"><span>Semáforo del día</span><span style="font-size:9px;color:var(--acc);cursor:pointer;" onclick="goSc('semaforo',document.querySelectorAll('.nb')[7])">ver completo →</span></div>
     <div style="display:flex;gap:6px;margin-bottom:6px;">
-      ${['david','andres'].map(k=>{const u=USERS[k];const d=smData[k];const col=d.pct>=80?'var(--grn)':d.pct>=50?'var(--yel)':'var(--red)';return `<div style="flex:1;background:var(--s1);border:0.5px solid var(--b1);border-radius:10px;padding:9px 8px;cursor:pointer;" onclick="goSc('semaforo',document.querySelectorAll('.nb')[7])"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11px;color:var(--t1);">${u.name.split(' ')[0]}</span><span style="font-size:16px;font-weight:600;color:${col};">${d.pct}%</span></div><div style="height:3px;background:var(--s3);border-radius:2px;margin-top:5px;"><div style="height:3px;border-radius:2px;background:${col};width:${d.pct}%;transition:width 0.4s;"></div></div><div style="font-size:9px;color:var(--t3);margin-top:3px;">${d.done}/${d.total} diarias</div></div>`;}).join('')}
+      ${['david','andres'].map(k=>{const u=USERS[k];const d=smData[k];const col=d.pct>=80?'var(--grn)':d.pct>=50?'var(--yel)':'var(--red)';return `<div style="flex:1;background:var(--s1);border:0.5px solid var(--b1);border-radius:10px;padding:9px 8px;cursor:pointer;" onclick="goSc('semaforo',document.querySelectorAll('.nb')[7])"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11px;color:var(--t1);">${u.name.split(' ')[0]}</span><span style="font-size:16px;font-weight:600;color:${col};">${d.pct}%</span></div><div style="height:3px;background:var(--s3);border-radius:2px;margin-top:5px;"><div style="height:3px;border-radius:2px;background:${col};width:${d.pct}%;transition:width 0.4s;"></div></div><div style="font-size:9px;color:#9898c8;margin-top:3px;">${d.done}/${d.total} diarias</div></div>`;}).join('')}
     </div>
     ${recVHTML}`;
 }
@@ -869,9 +865,9 @@ function showCompletadas(){
   document.getElementById('bita-new-wrap').style.display='none';
   document.getElementById('bita-fecha-wrap').style.display='none';
   document.getElementById('bita-ma').innerHTML='<button class="bs bs-g" onclick="closeM(\'mo-bita\')" style="flex:1;">Cerrar</button>';
-  let html=(done.length?'<div style="font-size:9px;color:var(--t3);margin-bottom:5px;text-transform:uppercase;">Preventivas</div>'+done.map(p=>`<div class="be"><div class="bwho">${p.resp==='ambos'?'Ambos':p.resp==='david'?'David':'Andrés'}</div><div class="bt3">${p.task}</div></div>`).join(''):'')
-    +(doneC.length?'<div style="font-size:9px;color:var(--t3);margin:7px 0 5px;text-transform:uppercase;">Correctivas resueltas</div>'+doneC.map(c=>`<div class="be"><div style="display:flex;justify-content:space-between;"><span class="bwho">${c.rBy}</span><span class="bw">${c.rWhen}</span></div><div class="bt3">${c.task} <span style="color:${c.rType==='Definitivo'?'var(--grn)':'var(--yel)'};font-size:9px;">${c.rType}</span></div>${c.rObs?`<div class="bt3" style="color:var(--t2);font-style:italic;">"${c.rObs}"</div>`:''}</div>`).join(''):'')
-    ||'<div style="color:var(--t3);font-size:11px;padding:8px 0;">Sin completadas aún</div>';
+  let html=(done.length?'<div style="font-size:9px;color:#9090c0;margin-bottom:5px;text-transform:uppercase;font-weight:700;">Preventivas</div>'+done.map(p=>`<div class="be"><div class="bwho">${p.resp==='ambos'?'Ambos':p.resp==='david'?'David':'Andrés'}</div><div class="bt3">${p.task}</div></div>`).join(''):'')
+    +(doneC.length?'<div style="font-size:9px;color:#9090c0;margin:7px 0 5px;text-transform:uppercase;font-weight:700;">Correctivas resueltas</div>'+doneC.map(c=>`<div class="be"><div style="display:flex;justify-content:space-between;"><span class="bwho">${c.rBy}</span><span class="bw">${c.rWhen}</span></div><div class="bt3">${c.task} <span style="color:${c.rType==='Definitivo'?'var(--grn)':'var(--yel)'};font-size:9px;">${c.rType}</span></div>${c.rObs?`<div class="bt3" style="color:#b8b8d8;font-style:italic;">"${c.rObs}"</div>`:''}</div>`).join(''):'')
+    ||'<div style="color:#9898c8;font-size:11px;padding:8px 0;">Sin completadas aún</div>';
   document.getElementById('bita-entries').innerHTML=html;
   openM('mo-bita');
 }
@@ -971,7 +967,7 @@ function buildCorr(){
       <div class="tm">${c.loc} · ${c.date}</div>
       ${c.obs?`<div class="tm" style="font-style:italic;margin-top:2px;">"${c.obs}"</div>`:''}
       ${c.sched?`<div class="tm" style="color:var(--yel);margin-top:2px;">📅 ${c.sched}</div>`:''}
-      ${lastB?`<div style="background:var(--s2);border-radius:7px;padding:5px 7px;margin-top:5px;"><div style="font-size:9px;color:var(--t3);">${lastB.ts} · ${lastB.who.split(' ')[0]}</div><div style="font-size:10px;color:var(--t2);margin-top:1px;">${lastB.text}</div></div>`:''}
+      ${lastB?`<div style="background:var(--s2);border-radius:7px;padding:5px 7px;margin-top:5px;"><div style="font-size:9px;color:#9090c0;">${lastB.ts} · ${lastB.who.split(' ')[0]}</div><div style="font-size:10px;color:#b8b8d8;margin-top:1px;">${lastB.text}</div></div>`:''}
       <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;"><span class="bdg ${sb}">${c.status}</span>${c.derivTo?`<span class="bdg bp">→ ${c.derivTo}</span>`:''}</div>
       <div class="tm" style="margin-top:3px;">Rep: ${c.reporter} · Asig: ${c.assignee}</div>
       ${canAct?`<div style="display:flex;gap:3px;margin-top:7px;flex-wrap:wrap;">
@@ -993,7 +989,7 @@ function buildCorr(){
       </div>`;
     });
   }
-  if(!active.length&&!resolved.length)html='<div style="color:var(--t3);font-size:12px;text-align:center;padding:32px 0;">Sin correctivas en este filtro</div>';
+  if(!active.length&&!resolved.length)html='<div style="color:#9898c8;font-size:12px;text-align:center;padding:32px 0;">Sin correctivas en este filtro</div>';
   document.getElementById('corr-list').innerHTML=html;
 }
 
@@ -1005,8 +1001,8 @@ function openBita(id){
   document.getElementById('bita-fecha-wrap').style.display='';
   document.getElementById('bita-t').value='';
   document.getElementById('bita-f').value=c.sched||'';
-  document.getElementById('bita-ex').innerHTML='<div style="font-size:9px;color:var(--t3);margin-bottom:4px;">Ejemplos:</div>'+BITA_EX.map(e=>`<span class="ex" onclick="document.getElementById('bita-t').value='${e}'">${e}</span>`).join('');
-  document.getElementById('bita-entries').innerHTML=(c.bita||[]).map(e=>`<div class="be"><div style="display:flex;justify-content:space-between;"><span class="bwho">${e.who.split(' ')[0]}</span><span class="bw">${e.ts}</span></div><div class="bt3">${e.text}</div></div>`).join('')||'<div style="color:var(--t3);font-size:10px;">Sin avances aún</div>';
+  document.getElementById('bita-ex').innerHTML='<div style="font-size:9px;color:#9090c0;margin-bottom:4px;">Ejemplos:</div>'+BITA_EX.map(e=>`<span class="ex" onclick="document.getElementById('bita-t').value='${e}'">${e}</span>`).join('');
+  document.getElementById('bita-entries').innerHTML=(c.bita||[]).map(e=>`<div class="be"><div style="display:flex;justify-content:space-between;"><span class="bwho">${e.who.split(' ')[0]}</span><span class="bw">${e.ts}</span></div><div class="bt3">${e.text}</div></div>`).join('')||'<div style="color:#9898c8;font-size:10px;">Sin avances aún</div>';
   document.getElementById('bita-ma').innerHTML='<button class="bs bs-g" onclick="closeM(\'mo-bita\')">Cerrar</button><button class="bs bs-a" onclick="saveBita()">Agregar</button>';
   c.status='EN PROCESO';save();openM('mo-bita');
 }
@@ -1092,7 +1088,7 @@ function rTS(n){
   const el=document.getElementById(`t${n}big`);
   el.textContent=val;el.style.color=last?tcol(parseFloat(val)):'var(--acc)';
   const log=document.getElementById(`tlog${n}`);
-  log.innerHTML=entries.length?entries.slice().reverse().map(e=>`<div class="te"><span class="tt">${e.time}</span><span class="tv" style="color:${tcol(parseFloat(e.val))};">${e.val}°C</span><span class="tc">${e.ctx}</span><span class="tw">${e.by.split(' ')[0]}</span></div>`).join(''):'<div style="font-size:10px;color:var(--t3);padding:5px 0;">Sin registros. Registrá el primero.</div>';
+  log.innerHTML=entries.length?entries.slice().reverse().map(e=>`<div class="te"><span class="tt">${e.time}</span><span class="tv" style="color:${tcol(parseFloat(e.val))};">${e.val}°C</span><span class="tc">${e.ctx}</span><span class="tw">${e.by.split(' ')[0]}</span></div>`).join(''):'<div style="font-size:10px;color:#9090c0;padding:5px 0;">Sin registros. Registrá el primero.</div>';
 }
 function checkTempAlerts(){
   const now=new Date();const nowM=now.getHours()*60+now.getMinutes();
@@ -1108,7 +1104,7 @@ function checkTempAlerts(){
 function buildTH(){
   const keys=Object.keys(temps).filter(k=>k.startsWith('s1_')).map(k=>k.replace('s1_','')).sort().reverse().slice(0,7);
   const nav=document.getElementById('this-nav');
-  if(!keys.length){nav.innerHTML='';document.getElementById('this-view').innerHTML='<div style="color:var(--t3);font-size:11px;">Sin historial</div>';return;}
+  if(!keys.length){nav.innerHTML='';document.getElementById('this-view').innerHTML='<div style="color:#b0b0d0;font-size:11px;">Sin historial</div>';return;}
   nav.innerHTML=keys.slice(0,5).map((d,i)=>{
     const parts=d.split('-');const label=`${parts[2]}/${parseInt(parts[1])+1}`;
     return `<button onclick="showTDay('${d}')" style="font-size:9px;padding:3px 8px;border-radius:20px;border:0.5px solid var(--b2);background:${i===0?'var(--s3)':'var(--s1)'};color:${i===0?'var(--t1)':'var(--t2)'};cursor:pointer;font-family:var(--fn);">${label}</button>`;
@@ -1122,7 +1118,7 @@ function showTDay(d){
     if(!entries.length)return;
     html+=`<div class="sh">Sala ${n}</div><div class="card">${entries.map(e=>`<div class="te"><span class="tt">${e.time}</span><span class="tv" style="color:${tcol(parseFloat(e.val))};">${e.val}°C</span><span class="tc">${e.ctx}</span><span class="tw">${e.by.split(' ')[0]}</span></div>`).join('')}</div>`;
   });
-  document.getElementById('this-view').innerHTML=html||'<div style="color:var(--t3);font-size:11px;">Sin datos</div>';
+  document.getElementById('this-view').innerHTML=html||'<div style="color:#b0b0d0;font-size:11px;">Sin datos</div>';
 }
 let curTS=1;
 function openTM(n){curTS=n;document.getElementById('mo-temp-t').textContent=`Temperatura Sala ${n}`;document.getElementById('tval').value='';openM('mo-temp');}
@@ -1160,7 +1156,7 @@ function rCompras(){
       <div class="cm">${c.prov}${c.monto?' · '+c.monto:''} · ${c.fecha}</div>
       ${c.aprobadaPor?`<div class="cm" style="color:var(--grn);">Aprobada por: ${c.aprobadaPor}</div>`:''}
     </div>`;
-  }).join(''):'<div style="color:var(--t3);font-size:12px;text-align:center;padding:28px 0;">Sin compras</div>';
+  }).join(''):'<div style="color:#9898c8;font-size:12px;text-align:center;padding:28px 0;">Sin compras</div>';
 }
 function openCD(id){
   const c=compras.find(x=>x.id===id);if(!c)return;
@@ -1175,7 +1171,7 @@ function openCD(id){
     ${c.aprov?.length?`<div class="tm"><strong style="color:var(--t1);">Aprobación:</strong> ${c.aprov.join(', ')}</div>`:''}
     ${c.aprobadaPor?`<div class="tm" style="color:var(--grn);"><strong>Aprobada por:</strong> ${c.aprobadaPor}</div>`:''}
     ${c.foto?`<img src="${c.foto}" style="width:100%;border-radius:8px;margin-top:7px;max-height:180px;object-fit:cover;"/>`:
-    '<div style="background:var(--s2);border-radius:7px;padding:8px;text-align:center;font-size:10px;color:var(--t3);margin-top:5px;">Sin factura adjunta</div>'}`;
+    '<div style="background:var(--s2);border-radius:7px;padding:8px;text-align:center;font-size:10px;color:#9090c0;margin-top:5px;">Sin factura adjunta</div>'}`;
   let acts='<button class="bs bs-g" onclick="closeM(\'mo-compradet\')" style="flex:1;">Cerrar</button>';
   if(canAprob&&!c.realizada&&c.estado==='Pendiente aprobación'){
     acts+=`<button class="bs bs-gr" onclick="aprobC('${c.id}')">Aprobar</button><button class="bs bs-r" onclick="rechC('${c.id}')">Rechazar</button>`;
@@ -1223,7 +1219,7 @@ function buildTurno(){
   document.getElementById('turno-form-wrap').innerHTML=canSign?`
     <div style="background:var(--s2);border:0.5px solid var(--b2);border-radius:11px;padding:10px 11px;margin-bottom:10px;cursor:pointer;" onclick="openM('mo-turno')">
       <div style="font-size:12px;font-weight:500;color:var(--t1);">✎ Firmar turno de hoy</div>
-      <div style="font-size:10px;color:var(--t3);margin-top:2px;">Resumen de lo que hiciste, pendientes y urgencias para mañana</div>
+      <div style="font-size:10px;color:#9898c8;margin-top:2px;">Resumen de lo que hiciste, pendientes y urgencias para mañana</div>
     </div>`:'';
   document.getElementById('turno-list').innerHTML=turnos.slice(0,10).map(t=>{
     const estadoCols={bien:'var(--grn)',regular:'var(--yel)',mal:'var(--red)'};
@@ -1239,7 +1235,7 @@ function buildTurno(){
       ${t.urg?`<div class="firma-urgente">⚠ Urgente para mañana: ${t.urg}</div>`:''}
       ${t.notas?`<div class="firma-section" style="margin-top:6px;"><div class="firma-label">Notas / Visitas / Observaciones</div><div class="firma-text">${t.notas}</div></div>`:''}
     </div>`;
-  }).join('')||'<div style="color:var(--t3);font-size:11px;">Sin firmas aún</div>';
+  }).join('')||'<div style="color:#b0b0d0;font-size:11px;">Sin firmas aún</div>';
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1254,7 +1250,7 @@ function addObs(){
 }
 function buildObs(){
   const canAdd=true;
-  document.getElementById('obs-new-wrap').innerHTML=canAdd?`<div style="background:var(--s2);border:0.5px solid var(--b2);border-radius:10px;padding:9px 11px;margin-bottom:9px;cursor:pointer;" onclick="openM('mo-obs')"><div style="font-size:12px;font-weight:500;color:var(--t1);">+ Nueva observación / nota</div><div style="font-size:10px;color:var(--t3);margin-top:1px;">Proveedores, requerimientos, avisos, seguimientos...</div></div>`:'';
+  document.getElementById('obs-new-wrap').innerHTML=canAdd?`<div style="background:var(--s2);border:0.5px solid var(--b2);border-radius:10px;padding:9px 11px;margin-bottom:9px;cursor:pointer;" onclick="openM('mo-obs')"><div style="font-size:12px;font-weight:500;color:var(--t1);">+ Nueva observación / nota</div><div style="font-size:10px;color:#9090c0;margin-top:1px;">Proveedores, requerimientos, avisos, seguimientos...</div></div>`:'';
   const catCols={General:'bgr','Proveedor / Visita técnica':'bt2','Requerimiento de compra':'bo','Seguimiento / Reparación pendiente':'br','Aviso a equipo':'bb2','Comentario de producción':'bp','Actores / Elenco':'bp','Público / Incidente':'br'};
   document.getElementById('obs-list').innerHTML=obsArr.slice(0,20).map(o=>`
     <div class="obs-entry">
@@ -1268,7 +1264,7 @@ function buildObs(){
       </div>
       <span class="bdg ${catCols[o.cat]||'bgr'}" style="margin-bottom:4px;">${o.cat}</span>
       <div class="obs-text" style="margin-top:4px;">${o.text}</div>
-    </div>`).join('')||'<div style="color:var(--t3);font-size:11px;">Sin notas aún</div>';
+    </div>`).join('')||'<div style="color:#b0b0d0;font-size:11px;">Sin notas aún</div>';
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1306,7 +1302,7 @@ function showPersonTasks(personKey){
     html+='<div style="font-size:9px;color:var(--ac2);font-weight:600;text-transform:uppercase;margin:8px 0 5px;">Extras no planificadas ('+extras.length+')</div>';
     html+=extras.map(e=>`<div class="be" style="border-left:2px solid var(--acc);padding-left:8px;"><div class="bt3">${e.desc}</div><div class="bw">${e.cat} · ${e.tiempo} · ${e.ts}</div></div>`).join('');
   }
-  if(!html)html='<div style="color:var(--t3);font-size:11px;">Sin tareas registradas hoy</div>';
+  if(!html)html='<div style="color:#b0b0d0;font-size:11px;">Sin tareas registradas hoy</div>';
   document.getElementById('bita-entries').innerHTML=html;
   openM('mo-bita');
 }
@@ -1344,7 +1340,7 @@ function buildSemaforo(){
               </div>
             </div>
             <div class="smf-bg"><div class="smf-bar" style="width:${d.pct}%;background:${col};"></div></div>
-            <div style="font-size:9px;color:var(--t3);margin-top:2px;">${d.done} hechas · ${d.total-d.done} pendientes · tap para ver detalle</div>
+            <div style="font-size:9px;color:#9898c8;margin-top:2px;">${d.done} hechas · ${d.total-d.done} pendientes · tap para ver detalle</div>
           </div>
         </div>`;
       }).join('')}
@@ -1367,7 +1363,7 @@ function buildSemaforo(){
 
   html+=`<div class="sh">Ausencias</div>`;
   const aus=ausencias[dk()];
-  html+=aus?`<div class="card lu"><div class="tk">Ausencia hoy: ${aus.who==='ambos'?'David y Andrés':aus.who==='david'?'David Vargas':'Andrés Patiño'}</div><div class="tm">${aus.motivo}${aus.obs?' · '+aus.obs:''}</div></div>`:'<div style="color:var(--t3);font-size:11px;padding:4px 0;">Sin ausencias registradas hoy</div>';
+  html+=aus?`<div class="card lu"><div class="tk">Ausencia hoy: ${aus.who==='ambos'?'David y Andrés':aus.who==='david'?'David Vargas':'Andrés Patiño'}</div><div class="tm">${aus.motivo}${aus.obs?' · '+aus.obs:''}</div></div>`:'<div style="color:#9898c8;font-size:11px;padding:4px 0;">Sin ausencias registradas hoy</div>';
 
   if(isExec()||isAdmin()){
     html+=`<div class="sh" style="margin-top:12px;"></div><div style="background:var(--s2);border-radius:9px;padding:8px 10px;cursor:pointer;text-align:center;font-size:11px;color:var(--acc);" onclick="openM('mo-ausencia')">+ Registrar ausencia</div>`;
@@ -1413,11 +1409,11 @@ function buildDash(){
       ${[1,2].map(n=>{const e=temps[`s${n}_${t}`]||[];return `<div class="dash-row"><span class="dash-name">Sala ${n}</span><span class="dash-val" style="color:var(--acc);">${e.length} registros</span></div>`;}).join('')}
     </div>
     <div class="sh">Últimas firmas de turno</div>
-    ${recentTurnos.length?recentTurnos.map(t=>`<div class="card"><div style="display:flex;align-items:center;gap:6px;"><div class="dash-av" style="background:${t.bg};color:${t.color};">${t.initials}</div><div style="flex:1;"><div style="font-size:11px;font-weight:500;color:var(--t1);">${t.name.split(' ')[0]} · ${t.ts}</div><div style="font-size:10px;color:var(--t2);margin-top:1px;">${t.hecho?.slice(0,60)}${t.hecho?.length>60?'…':''}</div></div><span class="bdg ${t.estado==='bien'?'bg2':t.estado==='regular'?'by':'br'}">${t.estado}</span></div></div>`).join(''):'<div style="color:var(--t3);font-size:11px;">Sin firmas</div>'}
+    ${recentTurnos.length?recentTurnos.map(t=>`<div class="card"><div style="display:flex;align-items:center;gap:6px;"><div class="dash-av" style="background:${t.bg};color:${t.color};">${t.initials}</div><div style="flex:1;"><div style="font-size:11px;font-weight:500;color:var(--t1);">${t.name.split(' ')[0]} · ${t.ts}</div><div style="font-size:10px;color:#b8b8d8;margin-top:1px;">${t.hecho?.slice(0,60)}${t.hecho?.length>60?'…':''}</div></div><span class="bdg ${t.estado==='bien'?'bg2':t.estado==='regular'?'by':'br'}">${t.estado}</span></div></div>`).join(''):'<div style="color:#b0b0d0;font-size:11px;">Sin firmas</div>'}
     <div class="sh">Observaciones con seguimiento</div>
-    ${recentObs.length?recentObs.map(o=>`<div class="obs-entry"><div class="obs-head"><span class="obs-who">${o.name.split(' ')[0]}</span><span class="obs-time">${o.ts}</span></div><span class="bdg br" style="font-size:8px;margin-bottom:3px;">Seguimiento</span><div class="obs-text">${o.text.slice(0,80)}…</div></div>`).join(''):'<div style="color:var(--t3);font-size:11px;">Sin observaciones pendientes</div>'}
+    ${recentObs.length?recentObs.map(o=>`<div class="obs-entry"><div class="obs-head"><span class="obs-who">${o.name.split(' ')[0]}</span><span class="obs-time">${o.ts}</span></div><span class="bdg br" style="font-size:8px;margin-bottom:3px;">Seguimiento</span><div class="obs-text">${o.text.slice(0,80)}…</div></div>`).join(''):'<div style="color:#b0b0d0;font-size:11px;">Sin observaciones pendientes</div>'}
     <div class="sh">Compras pendientes de aprobación</div>
-    ${compras.filter(c=>c.estado==='Pendiente aprobación').map(c=>`<div class="card lp" onclick="openCD('${c.id}');goSc('compras',document.querySelectorAll('.nb')[4]);"><div class="tk">${c.desc}</div><div class="tm">${c.prov} · ${c.monto}</div><div style="margin-top:4px;"><span class="bdg by">Pendiente aprobación</span></div></div>`).join('')||'<div style="color:var(--t3);font-size:11px;">Sin pendientes</div>'}
+    ${compras.filter(c=>c.estado==='Pendiente aprobación').map(c=>`<div class="card lp" onclick="openCD('${c.id}');goSc('compras',document.querySelectorAll('.nb')[4]);"><div class="tk">${c.desc}</div><div class="tm">${c.prov} · ${c.monto}</div><div style="margin-top:4px;"><span class="bdg by">Pendiente aprobación</span></div></div>`).join('')||'<div style="color:#b0b0d0;font-size:11px;">Sin pendientes</div>'}
   `;
   document.getElementById('dash-content').innerHTML=html;
 }
@@ -1426,9 +1422,9 @@ function buildDash(){
 // NOTIFS
 // ════════════════════════════════════════════════════════════════════════════
 function buildNotifs(){
-  document.getElementById('notif-list').innerHTML=SAMPLE_NOTIFS.map(n=>`<div class="notif-i" style="display:flex;gap:8px;padding:9px 0;border-bottom:0.5px solid var(--b1);"><div style="width:32px;height:32px;border-radius:50%;background:${n.color}20;color:${n.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;">${n.initials}</div><div style="flex:1;"><div style="font-size:11px;font-weight:500;color:var(--t1);">${n.from}</div><div style="font-size:11px;color:var(--t2);margin-top:2px;line-height:1.4;">${n.msg}</div><div style="font-size:9px;color:var(--t3);margin-top:2px;">${n.when}</div></div>${n.unread?'<div style="width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:3px;"></div>':''}</div>`).join('');
+  document.getElementById('notif-list').innerHTML=SAMPLE_NOTIFS.map(n=>`<div class="notif-i" style="display:flex;gap:8px;padding:9px 0;border-bottom:0.5px solid var(--b1);"><div style="width:32px;height:32px;border-radius:50%;background:${n.color}20;color:${n.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;">${n.initials}</div><div style="flex:1;"><div style="font-size:11px;font-weight:500;color:var(--t1);">${n.from}</div><div style="font-size:11px;color:#b8b8d8;margin-top:2px;line-height:1.4;">${n.msg}</div><div style="font-size:9px;color:#9898c8;margin-top:2px;">${n.when}</div></div>${n.unread?'<div style="width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:3px;"></div>':''}</div>`).join('');
   const der=corrs.filter(c=>c.status==='DERIVADA');
-  document.getElementById('deriv-list').innerHTML=der.length?der.map(c=>`<div class="card lv"><div class="tk">${c.task}</div><div class="tm">${c.loc} · → <strong style="color:var(--pur);">${c.derivTo}</strong></div><div class="tm" style="font-style:italic;margin-top:2px;">"${c.derivM}"</div></div>`).join(''):'<div style="color:var(--t3);font-size:11px;padding:5px 0;">Sin derivados pendientes</div>';
+  document.getElementById('deriv-list').innerHTML=der.length?der.map(c=>`<div class="card lv"><div class="tk">${c.task}</div><div class="tm">${c.loc} · → <strong style="color:var(--pur);">${c.derivTo}</strong></div><div class="tm" style="font-style:italic;margin-top:2px;">"${c.derivM}"</div></div>`).join(''):'<div style="color:#9898c8;font-size:11px;padding:5px 0;">Sin derivados pendientes</div>';
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1458,7 +1454,7 @@ function openAdminFull(){
 function openAdminView(){
   document.getElementById('admin-title').textContent='Vista admin · '+USERS[CU]?.name.split(' ')[0];
   document.getElementById('admin-body').innerHTML=`
-    <div style="font-size:11px;color:var(--t2);margin-bottom:10px;">Podés ver toda la actividad del teatro pero no modificar la estructura.</div>
+    <div style="font-size:11px;color:#c0c0e0;margin-bottom:10px;">Podés ver toda la actividad del teatro pero no modificar la estructura.</div>
     <button onclick="goSc('dash',document.getElementById('nb-dash'));closeM('mo-admin');" style="width:100%;background:var(--bbg);color:var(--blg);border:0.5px solid var(--bbd);border-radius:8px;padding:9px;font-size:11px;cursor:pointer;font-family:var(--fn);margin-bottom:7px;">Ver dashboard completo</button>
     <button onclick="goSc('semaforo',document.querySelectorAll('.nb')[7]);closeM('mo-admin');" style="width:100%;background:var(--gbg);color:var(--grn);border:0.5px solid var(--gbd);border-radius:8px;padding:9px;font-size:11px;cursor:pointer;font-family:var(--fn);margin-bottom:7px;">Ver semáforo semanal</button>
     <button class="bs bs-g" onclick="closeM('mo-admin')" style="width:100%;margin-top:4px;">Cerrar</button>`;
@@ -1473,9 +1469,9 @@ function buildAdmTaskList(){
       <div style="display:flex;align-items:flex-start;gap:6px;">
         <div style="flex:1;">
           <div style="font-size:11px;font-weight:500;color:var(--t1);">${p.task}</div>
-          <div style="font-size:9px;color:var(--t3);margin-top:1px;">${p.period} · ${p.resp==='ambos'?'Ambos':p.resp==='david'?'David':'Andrés'} · ${p.sector||''}</div>
+          <div style="font-size:9px;color:#9898c8;margin-top:1px;">${p.period} · ${p.resp==='ambos'?'Ambos':p.resp==='david'?'David':'Andrés'} · ${p.sector||''}</div>
           ${hasProx?`<div style="font-size:9px;color:${isOverdue?'var(--red)':'var(--yel)'};margin-top:2px;">${isOverdue?'⚠ VENCIDA':'📅 Próxima'}: ${p.proxima}</div>`:''}
-          ${p.notas?`<div style="font-size:9px;color:var(--t2);margin-top:1px;font-style:italic;">${p.notas.slice(0,50)}${p.notas.length>50?'…':''}</div>`:''}
+          ${p.notas?`<div style="font-size:9px;color:#b8b8d8;margin-top:1px;font-style:italic;">${p.notas.slice(0,50)}${p.notas.length>50?'…':''}</div>`:''}
         </div>
         <button onclick="editTask('${p.id}')" style="background:var(--bbg);color:var(--blg);border:none;border-radius:5px;padding:3px 6px;font-size:9px;cursor:pointer;font-family:var(--fn);">✎</button>
         <button onclick="delTask('${p.id}')" style="background:var(--rbg);color:var(--red);border:none;border-radius:5px;padding:3px 6px;font-size:9px;cursor:pointer;font-family:var(--fn);">×</button>
