@@ -375,6 +375,7 @@ select option{background:#1a1a2a;}
 
     <!-- SEMAFORO -->
     <div class="sc" id="sc-semaforo">
+  <button onclick="openHistorial()" style="position:fixed;bottom:70px;right:16px;background:var(--acc);color:#fff;border:none;border-radius:22px;padding:8px 14px;font-size:10px;font-weight:600;cursor:pointer;font-family:var(--fn);box-shadow:0 2px 12px rgba(110,110,240,0.4);z-index:400;display:none;" id="btn-historial">📅 Historial</button>
       <div class="p">
         <div id="semaforo-content"></div>
       </div>
@@ -810,18 +811,21 @@ async function pullAll() {
 
     let changed = false;
 
-    // ── CHECKS: merge remote + local. Local always wins. Empty remote = keep local. ──
+    // ── CHECKS: merge remote + local. Local always wins. ────────────────────────
     if (remoteChecks !== null) {
       const ck = {};
       remoteChecks.forEach(r => {
         if (r.id) ck[r.id] = (r.done === true || r.done === 'TRUE' || r.done === 'true' || r.done === '1');
       });
-      Object.assign(ck, localCk); // local overwrites remote
+      // Local ALWAYS wins — critical for preventing race condition on check/uncheck
+      Object.assign(ck, localCk);
       checks = ck;
       changed = true;
+    } else {
+      checks = localCk;
     }
-    // If server has no checks yet, keep all local checks
-    else { checks = localCk; }
+    // If user just tapped a check in the last 10s, skip rebuild to avoid flicker
+    const recentCheck = Date.now() - lastCheckTs < 10000;
 
     // ── CORRECTIVAS: only replace if server has actual data ──────────────────
     if (remoteCorrs !== null && remoteCorrs.length > 0) {
@@ -896,7 +900,17 @@ async function pullAll() {
     try { localStorage.setItem('m4-obs',     JSON.stringify(obsArr));   } catch(e) {}
     try { localStorage.setItem('m4-aus',     JSON.stringify(ausencias));} catch(e) {}
 
-    if (changed) rebuildAllViews();
+    if (changed) {
+      if (recentCheck) {
+        // Only rebuild non-check views to avoid check flicker
+        try{buildCorr();}catch(e){}
+        try{buildSemaforo();}catch(e){}
+        try{buildTemp();}catch(e){}
+        try{updateNavBadge();}catch(e){}
+      } else {
+        rebuildAllViews();
+      }
+    }
 
     SYNC_READY = true;
     LAST_SYNC  = Date.now();
@@ -1026,14 +1040,18 @@ function save(){
 }
 
 // ─ Targeted sync helpers ─────────────────────────────────────────────────────
+// Timestamp of last local check action — prevents pullAll overwrite for 10s
+let lastCheckTs = 0;
+
 function syncCheck(taskId, done) {
   const id = dk() + taskId;
   checks[id] = done;
+  lastCheckTs = Date.now(); // mark recent local change
   localStorage.setItem('m4-checks', JSON.stringify(checks));
   const row = { id, taskId, userId: CU, date: dk(), done: done ? 'true' : 'false', ts: nf() };
   apiPost('upsert', 'checks', { row }).then(r => {
     if (r !== null) console.log('✓ Check synced:', id, done);
-    else console.warn('⚠ Check queued (will retry):', id);
+    else console.warn('⚠ Check queued:', id);
   });
 }
 function syncCorr(c) { apiPost('upsert', 'correctivas', { row: flattenCorr(c) }); }
@@ -1150,10 +1168,18 @@ function adaptUI(){
 // ════════════════════════════════════════════════════════════════════════════
 function buildHome(){
   const myKey=['david','andres'].includes(CU)?CU:null;
-  const myT=myKey?prevs.filter(p=>p.resp===myKey&&p.period==='Diaria'):[];
-  const sh=prevs.filter(p=>p.resp==='ambos'&&p.period==='Diaria');
-  const allT=[...myT,...sh];
-  const doneCount=allT.filter(p=>checks[dk()+p.id]).length;
+  // For admins/semiadmins: show combined David+Andrés task count
+  let allT, doneCount;
+  if(!myKey){
+    // Admin view: all tasks for both executors
+    allT=prevs.filter(p=>p.period==='Diaria');
+    doneCount=allT.filter(p=>checks[dk()+p.id]).length;
+  } else {
+    const myT=prevs.filter(p=>p.resp===myKey&&p.period==='Diaria');
+    const sh=prevs.filter(p=>p.resp==='ambos'&&p.period==='Diaria');
+    allT=[...myT,...sh];
+    doneCount=allT.filter(p=>checks[dk()+p.id]).length;
+  }
   const urgC=corrs.filter(c=>c.urg==='URGENTE'&&c.status!=='RESUELTO').length;
   const pendC=allT.length-doneCount; // tareas de hoy sin completar
   const aus=ausencias[dk()];
@@ -1487,25 +1513,37 @@ function addCorr(){
 // ════════════════════════════════════════════════════════════════════════════
 function tcol(v){if(v>=28)return '#ff5566';if(v>=24)return '#ff9830';if(v>=20)return '#28d464';if(v>=16)return '#74b0ff';return '#a290f8';}
 function buildTemp(){checkTempAlerts();rTS(1);rTS(2);buildTH();}
-function rTS(n){
+function getTodayTemps(n){
+  // Get ALL entries for today for this sala, any user
   const key=`s${n}_${dk()}`;
-  const entries=(temps[key]||[]).slice().sort((a,b)=>a.sk-b.sk);
+  return (temps[key]||[]).slice().sort((a,b)=>a.sk-b.sk);
+}
+function rTS(n){
+  const entries=getTodayTemps(n);
   const last=entries[entries.length-1];
   const val=last?last.val:'--';
   const el=document.getElementById(`t${n}big`);
   el.textContent=val;el.style.color=last?tcol(parseFloat(val)):'var(--acc)';
   const log=document.getElementById(`tlog${n}`);
-  log.innerHTML=entries.length?entries.slice().reverse().map(e=>`<div class="te"><span class="tt">${e.time}</span><span class="tv" style="color:${tcol(parseFloat(e.val))};">${e.val}°C</span><span class="tc">${e.ctx}</span><span class="tw">${e.by.split(' ')[0]}</span></div>`).join(''):'<div style="font-size:10px;color:#9090c0;padding:5px 0;">Sin registros. Registrá el primero.</div>';
+  log.innerHTML=entries.length
+    ?entries.slice().reverse().map(e=>`<div class="te"><span class="tt">${e.time}</span><span class="tv" style="color:${tcol(parseFloat(e.val))};">${e.val}°C</span><span class="tc">${e.ctx}</span><span class="tw">${e.by.split(' ')[0]}</span></div>`).join('')
+    :'<div style="font-size:10px;color:#9090c0;padding:5px 0;">Sin registros. Registrá el primero.</div>';
 }
 function checkTempAlerts(){
   const now=new Date();const nowM=now.getHours()*60+now.getMinutes();
   [1,2].forEach(n=>{
     const el=document.getElementById(`talert${n}`);if(!el)return;
-    const key=`s${n}_${dk()}`;const entries=temps[key]||[];
-    if(!entries.length){el.innerHTML=`<div class="tal">⏰ Sin registros de temperatura en Sala ${n} hoy</div>`;return;}
+    const entries=getTodayTemps(n); // all users, today
+    if(!entries.length){
+      el.innerHTML=`<div class="tal">⏰ Sin registros de temperatura en Sala ${n} hoy</div>`;return;
+    }
     const last=entries[entries.length-1];
-    if(nowM-last.sk>120){el.innerHTML=`<div class="tal">⏰ Sala ${n}: último registro ${last.time} – ¡más de 2 hs!</div>`;}
-    else{el.innerHTML='';}
+    const minAgo=nowM-last.sk;
+    if(minAgo>120){
+      el.innerHTML=`<div class="tal">⏰ Sala ${n}: último registro ${last.time} (${Math.floor(minAgo/60)}h${minAgo%60}m) – necesita actualización</div>`;
+    } else {
+      el.innerHTML=''; // recent — no alert
+    }
   });
 }
 function buildTH(){
@@ -2190,6 +2228,8 @@ function showHistorialDay(d, btn){
 // ════════════════════════════════════════════════════════════════════════════
 const scMap={home:'sc-home',prev:'sc-prev',corr:'sc-corr',temp:'sc-temp',compras:'sc-compras',turno:'sc-turno',obs:'sc-obs',semaforo:'sc-semaforo',dash:'sc-dash',notif:'sc-notif'};
 function goSc(id,btn){
+  const fab=document.getElementById('btn-historial');
+  if(fab)fab.style.display=id==='semaforo'?'flex':'none';
   document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
   const el=document.getElementById(scMap[id]||'sc-'+id);if(el)el.classList.add('on');
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
