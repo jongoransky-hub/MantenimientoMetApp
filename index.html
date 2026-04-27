@@ -764,7 +764,6 @@ async function pullAll() {
   if (!API_URL) { showSyncStatus('offline'); return; }
   showSyncStatus('syncing');
   try {
-    // Snapshot local checks BEFORE fetch — local wins on merge
     const localCk = { ...checks };
 
     const [
@@ -779,30 +778,25 @@ async function pullAll() {
 
     let changed = false;
 
-    // CHECKS: start from remote, then overlay local (local always wins)
     if (remoteChecks !== null) {
       const ck = {};
       remoteChecks.forEach(r => {
         if (r.id) ck[r.id] = (r.done === true || r.done === 'TRUE' || r.done === 'true' || r.done === '1');
       });
-      Object.assign(ck, localCk); // local overrides remote — no race condition
+      Object.assign(ck, localCk);
       checks = ck;
       changed = true;
     }
 
-    // CORRECTIVAS: parse bita from JSON string if needed
     if (remoteCorrs !== null) {
       corrs = remoteCorrs.map(c => {
-        if (typeof c.bita === 'string') {
-          try { c.bita = JSON.parse(c.bita); } catch(e) { c.bita = []; }
-        }
+        if (typeof c.bita === 'string') { try { c.bita = JSON.parse(c.bita); } catch(e) { c.bita = []; } }
         if (!Array.isArray(c.bita)) c.bita = [];
         return c;
       });
       changed = true;
     }
 
-    // TEMPERATURAS: rebuild grouped object sorted by time
     if (remoteTemps !== null) {
       const tg = {};
       remoteTemps.forEach(r => {
@@ -826,12 +820,8 @@ async function pullAll() {
       ausencias = ag; changed = true;
     }
 
-    // PREVENTIVAS: only replace if server has actual data
-    if (remotePrevs !== null && remotePrevs.length > 0) {
-      prevs = remotePrevs; changed = true;
-    }
+    if (remotePrevs !== null && remotePrevs.length > 0) { prevs = remotePrevs; changed = true; }
 
-    // Persist to local cache
     try { localStorage.setItem('m4-checks',  JSON.stringify(checks));   } catch(e) {}
     try { localStorage.setItem('m4-corrs',   JSON.stringify(corrs));    } catch(e) {}
     try { localStorage.setItem('m4-temps',   JSON.stringify(temps));    } catch(e) {}
@@ -846,88 +836,10 @@ async function pullAll() {
     LAST_SYNC  = Date.now();
     showSyncStatus('online');
 
-    // Retry queued writes
     if (SYNC_QUEUE.length > 0) {
       const q = [...SYNC_QUEUE]; SYNC_QUEUE = [];
       q.forEach(op => apiPost(op.action, op.table, op.payload));
     }
-  } catch(e) {
-    console.error('pullAll error:', e);
-    showSyncStatus('offline');
-  }
-}
-
-    // ── CORRECTIVAS: parse bita if stored as JSON string ────────────────────
-    if (remoteCorrs !== null) {
-      corrs = remoteCorrs.map(c => {
-        if (typeof c.bita === 'string') {
-          try { c.bita = JSON.parse(c.bita); } catch(e) { c.bita = []; }
-        }
-        if (!Array.isArray(c.bita)) c.bita = [];
-        return c;
-      });
-      changed = true;
-    }
-
-    // ── TEMPERATURAS ─────────────────────────────────────────────────────────
-    if (remoteTemps !== null) {
-      const tg = {};
-      remoteTemps.forEach(r => {
-        const key = `s${r.sala}_${r.date}`;
-        if (!tg[key]) tg[key] = [];
-        tg[key].push({ val: parseFloat(r.val)||0, ctx: r.ctx, time: r.time, sk: parseInt(r.sk)||0, by: r.by });
-      });
-      // Sort each group by time
-      Object.keys(tg).forEach(k => tg[k].sort((a,b) => a.sk - b.sk));
-      temps = tg; changed = true;
-    }
-
-    if (remoteCompras !== null) { compras = remoteCompras; changed = true; }
-    if (remoteTurnos !== null)  { turnos  = remoteTurnos;  changed = true; }
-    if (remoteObs    !== null)  { obsArr  = remoteObs;     changed = true; }
-    if (remoteExtras !== null)  { extrasHoy = remoteExtras; changed = true; }
-
-    if (remoteAus !== null) {
-      const ag = {};
-      remoteAus.forEach(r => { if(r.date) ag[r.date] = { who: r.who, motivo: r.motivo, obs: r.obs }; });
-      ausencias = ag; changed = true;
-    }
-
-    // Preventivas: only replace if server has data (don't wipe local tasks)
-    if (remotePrevs !== null && remotePrevs.length > 0) {
-      prevs = remotePrevs; changed = true;
-    }
-
-    // Save to local cache
-    try { localStorage.setItem('m4-checks', JSON.stringify(checks)); } catch(e) {}
-    try { localStorage.setItem('m4-corrs',  JSON.stringify(corrs));  } catch(e) {}
-    try { localStorage.setItem('m4-temps',  JSON.stringify(temps));  } catch(e) {}
-    try { localStorage.setItem('m4-compras', JSON.stringify(compras)); } catch(e) {}
-    try { localStorage.setItem('m4-turnos',  JSON.stringify(turnos));  } catch(e) {}
-    try { localStorage.setItem('m4-obs',     JSON.stringify(obsArr));  } catch(e) {}
-    try { localStorage.setItem('m4-aus',     JSON.stringify(ausencias)); } catch(e) {}
-
-    if (changed) rebuildAllViews();
-
-    SYNC_READY = true;
-    LAST_SYNC  = Date.now();
-    showSyncStatus('online');
-
-    // Retry any queued writes
-    if (SYNC_QUEUE.length > 0) {
-      const q = [...SYNC_QUEUE]; SYNC_QUEUE = [];
-      q.forEach(op => apiPost(op.action, op.table, op.payload));
-    }
-
-    // Re-push any local checks that aren't in remote yet (first sync after marking)
-    localPendingIds.forEach(id => {
-      const inRemote = remoteChecks && remoteChecks.some(r => r.id === id && (r.done === true || r.done === 'TRUE'));
-      if (!inRemote) {
-        const taskId = id.replace(/^[^p]*/, '').replace(/^\d{4}-\d+-\d+/, '');
-        apiPost('upsert', 'checks', { row: { id, taskId, userId: CU, date: dk(), done: true, ts: nf() } });
-      }
-    });
-
   } catch(e) {
     console.error('pullAll error:', e);
     showSyncStatus('offline');
