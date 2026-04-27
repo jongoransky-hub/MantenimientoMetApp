@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -839,10 +842,22 @@ async function pullAll() {
         const timeStr = String(r.time || '');
         const exists = tg[key].some(e => e.time === timeStr && e.val === parseFloat(r.val));
         if (!exists) {
-          tg[key].push({ val: parseFloat(r.val)||0, ctx: r.ctx||'', time: timeStr, sk: parseInt(r.sk)||0, by: String(r.by||'') });
+          // Clean time: if Sheets returned a full date string, extract HH:MM
+        let cleanTime = timeStr;
+        if (cleanTime.includes('T') || cleanTime.includes('1899')) {
+          // It's a date serial — extract time from sk (minutes from midnight)
+          const skVal = parseInt(r.sk)||0;
+          const h = Math.floor(skVal/60);
+          const m = skVal % 60;
+          cleanTime = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+        }
+        tg[key].push({ val: parseFloat(r.val)||0, ctx: r.ctx||'', time: cleanTime, sk: parseInt(r.sk)||0, by: String(r.by||'') });
         }
       });
       Object.keys(tg).forEach(k => tg[k].sort((a,b) => a.sk - b.sk));
+      // Safety: ensure today's local temps are never lost
+      const todayKeys = Object.keys(temps).filter(k => k.endsWith('_' + dk()));
+      todayKeys.forEach(k => { if (!tg[k] || tg[k].length < temps[k].length) tg[k] = temps[k]; });
       temps = tg; changed = true;
     }
 
@@ -885,6 +900,18 @@ async function pullAll() {
       const q = [...SYNC_QUEUE]; SYNC_QUEUE = [];
       q.forEach(op => apiPost(op.action, op.table, op.payload));
     }
+
+    // Re-push today's checks to Sheets if they exist locally but not in remote
+    const todayDk = dk();
+    Object.keys(checks).forEach(id => {
+      if (id.startsWith(todayDk) && checks[id]) {
+        const inRemote = remoteChecks && remoteChecks.some(r => r.id === id && (r.done === true || r.done === 'TRUE' || r.done === 'true'));
+        if (!inRemote) {
+          const taskId = id.replace(todayDk, '');
+          apiPost('upsert', 'checks', { row: { id, taskId, userId: CU, date: todayDk, done: 'true', ts: nf() } });
+        }
+      }
+    });
   } catch(e) {
     console.error('pullAll error:', e);
     showSyncStatus('offline');
@@ -1093,7 +1120,7 @@ function buildHome(){
   const allT=[...myT,...sh];
   const doneCount=allT.filter(p=>checks[dk()+p.id]).length;
   const urgC=corrs.filter(c=>c.urg==='URGENTE'&&c.status!=='RESUELTO').length;
-  const pendC=corrs.filter(c=>c.status==='PENDIENTE').length;
+  const pendC=allT.length-doneCount; // tareas de hoy sin completar
   const aus=ausencias[dk()];
 
   // ausencia banner
@@ -1112,7 +1139,7 @@ function buildHome(){
       <div class="sn" style="color:var(--red);">${urgC}</div>
       <div class="sl" style="color:${urgC>0?'#ffffff':'var(--t2)'};">Urgentes</div>
     </div>
-    <div class="sb" onclick="goCorrFilter('PENDIENTE')"><div class="sn" style="color:var(--ora);">${pendC}</div><div class="sl" style="color:var(--t1);">Pendientes</div></div>
+    <div class="sb" onclick="goSc('prev',document.querySelectorAll('.nb')[1])"><div class="sn" style="color:var(--ora);">${pendC}</div><div class="sl" style="color:var(--t1);">Pendientes hoy</div></div>
     <div class="sb" onclick="showCompletadas()"><div class="sn" style="color:var(--grn);">${doneCount}</div><div class="sl" style="color:var(--t1);">Completadas</div></div>`;
 
   let alertHTML='';
@@ -1415,7 +1442,9 @@ function buildTH(){
   const nav=document.getElementById('this-nav');
   if(!keys.length){nav.innerHTML='';document.getElementById('this-view').innerHTML='<div style="color:#b0b0d0;font-size:11px;">Sin historial</div>';return;}
   nav.innerHTML=keys.slice(0,5).map((d,i)=>{
-    const parts=d.split('-');const label=`${parts[2]}/${parseInt(parts[1])+1}`;
+    // d is like "2026-4-27" — display as "27/4"
+    const parts=d.split('-');
+    const label=parts.length>=3 ? `${parts[2]}/${parts[1]}` : d;
     return `<button onclick="showTDay('${d}')" style="font-size:9px;padding:3px 8px;border-radius:20px;border:0.5px solid var(--b2);background:${i===0?'var(--s3)':'var(--s1)'};color:${i===0?'var(--t1)':'var(--t2)'};cursor:pointer;font-family:var(--fn);">${label}</button>`;
   }).join('');
   showTDay(keys[0]);
