@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#080812">
+<title>Metropolitan · Mantenimiento</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#080812;--s1:#13131f;--s2:#1a1a2a;--s3:#222235;--s4:#2a2a40;
+  --b1:#ffffff0e;--b2:#ffffff18;--b3:#ffffff28;--b4:#ffffff40;
+  --t1:#eaeaf5;--t2:#8080a8;--t3:#4a4a70;--t4:#2a2a48;
+  --red:#ff4455;--rbg:#ff445512;--rbd:#ff445535;
+  --ora:#ff9830;--obg:#ff983012;--obd:#ff983035;
+  --yel:#f5c030;--ybg:#f5c03012;--ybd:#f5c03035;
+  --grn:#28d464;--gbg:#28d46412;--gbd:#28d46435;
+  --blu:#4c7cf8;--blg:#8aaaff;--bbg:#4c7cf812;--bbd:#4c7cf835;
+  --pur:#8c5ef5;--pbg:#8c5ef512;--pbd:#8c5ef535;
+  --tea:#00bdb8;--tbg:#00bdb812;
+  --acc:#6e6ef0;--ac2:#9090ff;
+  --fn:'DM Sans',sans-serif;--mo:'DM Mono',monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:var(--fn);color:var(--t1);}
+
+/* LOGIN */
+#ls{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;z-index:1000;overflow-y:auto;}
+.ll{font-size:10px;letter-spacing:0.3em;color:var(--t3);text-transform:uppercase;margin-bottom:4px;}
+.lt{font-size:22px;font-weight:600;color:var(--t1);text-align:center;margin-bottom:2px;}
+.ls{font-size:11px;color:var(--t2);margin-bottom:20px;text-align:center;}
+.ug{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;max-width:310px;margin-bottom:14px;}
+.ub{background:var(--s1);border:0.5px solid var(--b2);border-radius:11px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:border-color 0.15s,background 0.15s;}
+.ub.sel{border-color:var(--acc);background:var(--bbg);}
+.ua{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;}
+.un{font-size:11px;font-weight:500;color:var(--t1);}
+.ur{font-size:9px;color:var(--t3);text-align:center;}
+.pa{width:100%;max-width:310px;}
+.pl{font-size:11px;color:var(--t3);margin-bottom:5px;text-align:center;}
+.pi{width:100%;background:var(--s1);border:0.5px solid var(--b2);border-radius:11px;padding:12px;font-size:20px;font-family:var(--mo);color:var(--t1);text-align:center;letter-spacing:0.4em;outline:none;}
+.pi:focus{border-color:var(--acc);}
+.lb{width:100%;max-width:310px;margin-top:8px;background:var(--acc);color:#fff;border:none;border-radius:11px;padding:12px;font-size:14px;font-weight:500;font-family:var(--fn);cursor:pointer;}
+.le{font-size:11px;color:var(--red);text-align:center;margin-top:5px;min-height:15px;}
+
+/* SHELL */
+#app{height:100%;display:flex;flex-direction:column;display:none;}
+.tb{background:var(--s1);border-bottom:0.5px solid var(--b1);padding:8px 13px 7px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.tbl{display:flex;flex-direction:column;}
+.tg{font-size:9px;color:var(--t3);}
+.tn2{font-size:14px;font-weight:600;color:var(--t1);}
+.tr{display:flex;align-items:center;gap:7px;}
+.nd{width:6px;height:6px;border-radius:50%;background:var(--red);}
+.av{width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;cursor:pointer;}
+.scr{flex:1;overflow:hidden;position:relative;}
+.sc{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;padding-bottom:66px;}
+.sc.on{display:block;}
+.sc::-webkit-scrollbar{width:0;}
+.p{padding:11px 12px 0;}
+
+/* NAV */
+.bn{display:flex;background:#111120;border-top:0.5px solid #ffffff1a;padding:5px 0 max(5px,env(safe-area-inset-bottom));flex-shrink:0;}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:none;cursor:pointer;padding:2px 1px;}
+.ni{font-size:14px;line-height:1.3;color:#606090;}
+.nl{font-size:8px;color:#505080;font-family:var(--fn);white-space:nowrap;}
+.nb.on .ni,.nb.on .nl{color:var(--ac2);}
+
+/* GENERICS */
+.sh{font-size:9px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:0.12em;margin:15px 0 6px;}
+.sh:first-child{margin-top:0;}
+.card{background:var(--s1);border:0.5px solid var(--b1);border-radius:12px;padding:10px 11px;margin-bottom:6px;}
+.card.lu{border-left:3px solid var(--red);}
+.card.lp{border-left:3px solid var(--ora);}
+.card.ln{border-left:3px solid var(--yel);}
+.card.lg{border-left:3px solid var(--grn);}
+.card.lv{border-left:3px solid var(--pur);}
+.card.lb2{border-left:3px solid var(--blu);}
+.card.dim{opacity:0.38;}
+.bdg{display:inline-flex;align-items:center;font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;letter-spacing:0.02em;}
+.br{background:var(--rbg);color:var(--red);}
+.bo{background:var(--obg);color:var(--ora);}
+.by{background:var(--ybg);color:var(--yel);}
+.bg2{background:var(--gbg);color:var(--grn);}
+.bb2{background:var(--bbg);color:var(--blg);}
+.bp{background:var(--pbg);color:var(--pur);}
+.bgr{background:var(--s3);color:var(--t2);}
+.bt2{background:var(--tbg);color:var(--tea);}
+.tr2{display:flex;align-items:flex-start;gap:8px;}
+.ck{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--b2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all 0.15s;}
+.ck.on{background:var(--grn);border-color:var(--grn);}
+.ck svg{width:10px;height:10px;stroke:#fff;stroke-width:2.5;fill:none;opacity:0;}
+.ck.on svg{opacity:1;}
+.tk{font-size:12px;font-weight:500;color:var(--t1);line-height:1.3;}
+.tk.st{text-decoration:line-through;color:var(--t3);}
+.tm{font-size:10px;color:var(--t2);margin-top:2px;line-height:1.4;}
+.tgs{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;}
+.sp{height:0.5px;background:var(--b1);margin:8px 0;}
+
+/* STATS HOME */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.sb{background:var(--s1);border:0.5px solid var(--b1);border-radius:10px;padding:9px 7px;text-align:center;cursor:pointer;transition:background 0.15s;}
+.sb:active{background:var(--s2);}
+.sn{font-size:22px;font-weight:600;line-height:1;}
+.sl{font-size:9px;color:var(--t2);margin-top:4px;line-height:1.3;font-weight:500;}
+
+/* ALERT */
+.ac{background:var(--rbg);border:0.5px solid var(--rbd);border-radius:11px;padding:9px 11px;margin-bottom:6px;}
+.at{font-size:12px;font-weight:600;color:var(--red);}
+.ab{font-size:10px;color:var(--t2);margin-top:2px;}
+.aa{display:flex;gap:5px;margin-top:7px;}
+.bs{flex:1;border:none;border-radius:7px;padding:6px 4px;font-size:10px;font-weight:500;cursor:pointer;font-family:var(--fn);}
+.bs-a{background:var(--acc);color:#fff;}
+.bs-g{background:var(--s2);color:var(--t2);}
+.bs-gr{background:var(--gbg);color:var(--grn);border:0.5px solid var(--gbd);}
+.bs-r{background:var(--rbg);color:var(--red);border:0.5px solid var(--rbd);}
+.bs-p{background:var(--pbg);color:var(--pur);border:0.5px solid var(--pbd);}
+.bs-o{background:var(--obg);color:var(--ora);border:0.5px solid var(--obd);}
+
+/* FORMS */
+.f{margin-bottom:9px;}
+.f label{display:block;font-size:10px;color:var(--t3);margin-bottom:4px;}
+.f input,.f select,.f textarea{width:100%;background:var(--s1);border:0.5px solid var(--b2);border-radius:9px;padding:9px 10px;font-size:12px;color:var(--t1);font-family:var(--fn);outline:none;}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--acc);}
+.f select{appearance:none;}
+.f textarea{resize:none;height:60px;line-height:1.5;}
+select option{background:#1a1a2a;}
+.ug2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
+.uo{border-radius:8px;padding:7px 3px;text-align:center;cursor:pointer;border:1px solid var(--b1);background:var(--s1);}
+.uo.su{border-width:2px;}
+.uo.uu.su{border-color:var(--red);background:var(--rbg);}
+.uo.up.su{border-color:var(--ora);background:var(--obg);}
+.uo.un.su{border-color:var(--yel);background:var(--ybg);}
+.un2{font-size:10px;font-weight:500;color:var(--t1);}
+.us{font-size:8px;color:var(--t3);margin-top:1px;}
+.uo.uu.su .un2{color:var(--red);}
+.uo.up.su .un2{color:var(--ora);}
+.uo.un.su .un2{color:var(--yel);}
+.cw{display:flex;flex-wrap:wrap;gap:5px;}
+.ch{padding:4px 9px;border-radius:20px;font-size:10px;border:0.5px solid var(--b2);background:var(--s1);color:var(--t2);cursor:pointer;}
+.ch.sc{background:var(--s2);color:var(--t1);border-color:var(--acc);}
+.sb2{width:100%;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:500;font-family:var(--fn);cursor:pointer;margin-top:7px;}
+.tr3{display:flex;background:var(--s1);border-radius:8px;padding:2px;margin-bottom:9px;}
+.to{flex:1;padding:5px;text-align:center;font-size:10px;border:none;background:none;color:var(--t2);border-radius:6px;cursor:pointer;font-family:var(--fn);}
+.to.st{background:var(--s3);color:var(--t1);}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:500;display:none;align-items:flex-end;justify-content:center;}
+.mo.on{display:flex;}
+.ms{background:var(--s1);border-radius:16px 16px 0 0;padding:14px 14px max(14px,env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:93vh;overflow-y:auto;}
+.ms::-webkit-scrollbar{width:0;}
+.mh{width:30px;height:3px;background:var(--b2);border-radius:2px;margin:0 auto 11px;}
+.mt2{font-size:14px;font-weight:600;color:var(--t1);margin-bottom:11px;}
+.ma{display:flex;gap:6px;margin-top:11px;}
+
+/* TEMP */
+.te{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:0.5px solid var(--b1);}
+.te:last-child{border-bottom:none;}
+.tt{font-size:11px;font-weight:500;font-family:var(--mo);min-width:40px;color:var(--ac2);}
+.tv{font-size:14px;font-weight:500;font-family:var(--mo);min-width:46px;}
+.tc{font-size:10px;color:var(--t2);flex:1;}
+.tw{font-size:9px;color:var(--t3);}
+.ta2{width:100%;background:var(--s2);border:0.5px solid var(--b2);border-radius:8px;padding:8px;color:var(--ac2);font-size:11px;font-family:var(--fn);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;margin-top:7px;}
+.tal{background:var(--obg);border:0.5px solid var(--obd);border-radius:8px;padding:7px 9px;font-size:10px;color:var(--ora);margin-bottom:7px;display:flex;align-items:center;gap:5px;}
+
+/* BITACORA */
+.be{background:var(--s2);border-radius:8px;padding:7px 9px;margin-bottom:5px;}
+.bw{font-size:9px;color:var(--t3);}
+.bwho{font-size:9px;color:var(--ac2);font-weight:500;}
+.bt3{font-size:11px;color:var(--t1);margin-top:2px;line-height:1.4;}
+.ex{display:inline-block;background:var(--s3);border:0.5px solid var(--b2);border-radius:7px;padding:3px 7px;font-size:10px;color:var(--t2);margin:2px;cursor:pointer;}
+
+/* COMPRAS */
+.cc2{background:var(--s1);border:0.5px solid var(--b1);border-radius:11px;padding:9px 11px;margin-bottom:6px;cursor:pointer;}
+.ct{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+.cn{font-size:12px;font-weight:500;color:var(--t1);margin-top:2px;}
+.cm{font-size:10px;color:var(--t2);margin-top:2px;}
+.fp{width:100%;height:75px;border-radius:7px;object-fit:cover;margin-top:5px;display:none;}
+.fp.on{display:block;}
+.fb{width:100%;background:var(--s2);border:0.5px solid var(--b2);border-radius:8px;padding:8px;color:var(--blg);font-size:11px;font-family:var(--fn);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;margin-top:4px;}
+
+/* SEMAFORO */
+.smf{background:var(--s1);border:0.5px solid var(--b1);border-radius:12px;padding:11px;margin-bottom:8px;}
+.smf-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--b1);}
+.smf-row:last-child{border-bottom:none;}
+.smf-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.smf-name{font-size:12px;font-weight:500;color:var(--t1);flex:1;}
+.smf-pct{font-size:12px;font-weight:600;font-family:var(--mo);}
+.smf-bar{height:4px;border-radius:2px;margin-top:3px;transition:width 0.4s;}
+.smf-bg{height:4px;background:var(--s3);border-radius:2px;margin-top:4px;}
+.week-box{background:var(--s2);border-radius:9px;padding:10px 8px;text-align:center;flex:1;cursor:pointer;transition:background 0.15s;border:0.5px solid var(--b1);}
+.week-box:active{background:var(--s3);}
+.week-n{font-size:22px;font-weight:600;line-height:1;}
+.week-l{font-size:10px;color:#ffffff;font-weight:500;margin-top:3px;}
+
+/* FIRMA */
+.firma-card{background:linear-gradient(135deg,var(--s2),var(--s1));border:0.5px solid var(--b2);border-radius:12px;padding:11px;margin-bottom:6px;}
+.firma-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.firma-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;}
+.firma-who{font-size:12px;font-weight:500;color:var(--t1);}
+.firma-when{font-size:10px;color:var(--t3);}
+.firma-section{margin-bottom:6px;}
+.firma-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--t3);margin-bottom:3px;}
+.firma-text{font-size:11px;color:var(--t2);line-height:1.4;}
+.firma-urgente{background:var(--rbg);border:0.5px solid var(--rbd);border-radius:7px;padding:5px 8px;font-size:11px;color:var(--red);}
+
+/* OBSERVACIONES */
+.obs-entry{background:var(--s1);border:0.5px solid var(--b1);border-radius:10px;padding:9px 11px;margin-bottom:6px;}
+.obs-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
+.obs-who{font-size:10px;font-weight:500;color:var(--ac2);}
+.obs-cat{font-size:9px;padding:2px 6px;border-radius:10px;}
+.obs-time{font-size:9px;color:var(--t3);}
+.obs-text{font-size:11px;color:var(--t1);line-height:1.4;}
+
+/* ADMIN */
+.aur{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:0.5px solid var(--b1);}
+.aui{flex:1;}
+.aun{font-size:12px;font-weight:500;color:var(--t1);}
+.aurl{font-size:9px;color:var(--t3);}
+.as2{background:var(--s2);border-radius:9px;padding:9px 10px;margin-bottom:7px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
+.ast{font-size:12px;font-weight:500;color:var(--t1);}
+.ass{font-size:10px;color:var(--t3);margin-top:1px;}
+
+/* DERIVAR */
+.dt{display:flex;align-items:center;gap:7px;padding:8px 9px;border-radius:9px;border:0.5px solid var(--b2);background:var(--s1);cursor:pointer;margin-bottom:4px;}
+.dt.sel{border-color:var(--acc);background:var(--bbg);}
+.dav{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;}
+.dn{font-size:11px;font-weight:500;color:var(--t1);}
+.dr{font-size:9px;color:var(--t3);}
+
+/* DASHBOARD */
+.dash-card{background:var(--s1);border:0.5px solid var(--b1);border-radius:11px;padding:10px;margin-bottom:7px;}
+.dash-title{font-size:11px;font-weight:600;color:var(--t1);margin-bottom:8px;}
+.dash-row{display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:0.5px solid var(--b1);}
+.dash-row:last-child{border-bottom:none;}
+.dash-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;flex-shrink:0;}
+.dash-name{font-size:11px;color:var(--t1);flex:1;}
+.dash-val{font-size:11px;font-weight:600;font-family:var(--mo);}
+.dash-bar-bg{height:3px;background:var(--s3);border-radius:2px;flex:1;}
+.dash-bar{height:3px;border-radius:2px;}
+
+/* RECORDATORIOS */
+.rec-card{background:var(--ybg);border:0.5px solid var(--ybd);border-radius:10px;padding:8px 10px;margin-bottom:5px;display:flex;align-items:flex-start;gap:8px;}
+.rec-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.rec-task{font-size:11px;font-weight:500;color:var(--t1);}
+.rec-sub{font-size:10px;color:var(--t2);margin-top:1px;}
+.rec-period{font-size:9px;color:var(--yel);font-weight:600;margin-top:3px;}
+
+.toast2{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:var(--s2);border:0.5px solid var(--b3);color:var(--t1);padding:8px 15px;border-radius:20px;font-size:11px;font-weight:500;z-index:999;opacity:0;transition:opacity 0.25s;pointer-events:none;white-space:nowrap;}
+.toast2.on{opacity:1;}
+.pill{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:500;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="ls">
+  <div class="ll">Teatro Metropolitan</div>
+  <div class="lt">Mantenimiento</div>
+  <div class="ls2" style="font-size:11px;color:var(--t2);margin-bottom:20px;text-align:center;">Seleccioná tu usuario e ingresá tu PIN</div>
+  <div class="ug" id="ugrid"></div>
+  <div class="pa">
+    <div class="pl">PIN de acceso</div>
+    <input type="password" inputmode="numeric" maxlength="4" class="pi" id="pin" placeholder="••••"/>
+    <div class="le" id="lerr"></div>
+    <button class="lb" onclick="doLogin()">Ingresar</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div style="background:#1a0a00;border-bottom:0.5px solid #ff983040;padding:4px 13px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;" id="beta-banner">
+    <span style="font-size:9px;color:var(--ora);font-weight:600;letter-spacing:0.05em;">VERSIÓN BETA · DATOS DE EJEMPLO</span>
+    <button onclick="document.getElementById('beta-banner').style.display='none'" style="background:none;border:none;color:var(--t3);font-size:10px;cursor:pointer;">✕</button>
+  </div>
+  <div style="background:#1a0a00;border-bottom:0.5px solid #ff983040;padding:4px 13px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;" id="beta-banner">
+    <span style="font-size:9px;color:#ff9830;font-weight:600;letter-spacing:0.05em;">BETA · Datos de ejemplo activos</span>
+    <button onclick="document.getElementById('beta-banner').style.display='none'" style="background:none;border:none;color:#4a4a70;font-size:10px;cursor:pointer;">✕</button>
+  </div>
+  <div class="tb">
+    <div class="tbl">
+      <div class="tg" id="topdate"></div>
+      <div class="tn2" id="topname"></div>
+    </div>
+    <div class="tr">
+      <div class="nd" id="notifdot" style="display:none;"></div>
+      <div class="av" id="topav" onclick="tryAdmin()"></div>
+    </div>
+  </div>
+
+  <div class="scr">
+    <!-- INICIO -->
+    <div class="sc on" id="sc-home">
+      <div class="p">
+        <div class="sg" id="hstats"></div>
+        <div id="halerts"></div>
+        <div id="hrecord"></div>
+        <div id="hmytasks-wrap">
+          <div class="sh">Mis tareas de hoy (propias + compartidas)</div>
+          <div id="hmytasks"></div>
+          <div id="hshared" style="display:none;"></div>
+        </div>
+        <div id="hsemiforo-mini"></div>
+      </div>
+    </div>
+
+    <!-- TAREAS -->
+    <div class="sc" id="sc-prev">
+      <div class="p">
+        <div class="tr3" id="prev-tog"></div>
+        <div id="prev-list"></div>
+      </div>
+    </div>
+
+    <!-- CORRECTIVAS -->
+    <div class="sc" id="sc-corr">
+      <div class="p">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div id="corrfilters" style="display:flex;gap:3px;flex-wrap:wrap;flex:1;margin-right:6px;"></div>
+          <button id="btn-new-corr" onclick="openM('mo-newcorr')" style="background:var(--acc);color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-family:var(--fn);cursor:pointer;flex-shrink:0;">+ Nueva</button>
+        </div>
+        <div id="corr-list"></div>
+      </div>
+    </div>
+
+    <!-- TEMPERATURA -->
+    <div class="sc" id="sc-temp">
+      <div class="p">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:9px;">
+          <div class="sb" style="cursor:default;"><div class="sn" id="t1big" style="color:var(--acc);">--</div><div class="sl">Sala 1 °C</div></div>
+          <div class="sb" style="cursor:default;"><div class="sn" id="t2big" style="color:var(--acc);">--</div><div class="sl">Sala 2 °C</div></div>
+        </div>
+        <div id="talert1"></div>
+        <div class="sh">Sala 1</div>
+        <div class="card"><div id="tlog1"></div><button class="ta2" onclick="openTM(1)">+ Registrar Sala 1</button></div>
+        <div id="talert2"></div>
+        <div class="sh">Sala 2</div>
+        <div class="card"><div id="tlog2"></div><button class="ta2" onclick="openTM(2)">+ Registrar Sala 2</button></div>
+        <div class="sh">Historial por día</div>
+        <div id="this-nav" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px;"></div>
+        <div id="this-view"></div>
+      </div>
+    </div>
+
+    <!-- COMPRAS -->
+    <div class="sc" id="sc-compras">
+      <div class="p">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div class="tr3" id="compras-tog" style="flex:1;margin-right:6px;margin-bottom:0;"></div>
+          <button onclick="openM('mo-newcompra')" style="background:var(--acc);color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-family:var(--fn);cursor:pointer;flex-shrink:0;">+ Pedido</button>
+        </div>
+        <div id="compras-list"></div>
+      </div>
+    </div>
+
+    <!-- TURNO -->
+    <div class="sc" id="sc-turno">
+      <div class="p">
+        <div id="turno-form-wrap"></div>
+        <div class="sh">Firmas de turno recientes</div>
+        <div id="turno-list"></div>
+      </div>
+    </div>
+
+    <!-- OBSERVACIONES -->
+    <div class="sc" id="sc-obs">
+      <div class="p">
+        <div id="obs-new-wrap"></div>
+        <div class="sh">Notas del período</div>
+        <div id="obs-list"></div>
+      </div>
+    </div>
+
+    <!-- SEMAFORO -->
+    <div class="sc" id="sc-semaforo">
+      <div class="p">
+        <div id="semaforo-content"></div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="sc" id="sc-dash">
+      <div class="p">
+        <div id="dash-content"></div>
+      </div>
+    </div>
+
+    <!-- AVISOS -->
+    <div class="sc" id="sc-notif">
+      <div class="p">
+        <div class="sh">Recientes</div>
+        <div id="notif-list"></div>
+        <div class="sh">Derivados pendientes</div>
+        <div id="deriv-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bn" id="botnav">
+    <button class="nb on" onclick="goSc('home',this)"><span class="ni">⊙</span><span class="nl">Inicio</span></button>
+    <button class="nb" onclick="goSc('prev',this)"><span class="ni">✓</span><span class="nl">Tareas</span></button>
+    <button class="nb" onclick="goSc('corr',this)"><span class="ni">⚙</span><span class="nl">Correctivas</span></button>
+    <button class="nb" onclick="goSc('temp',this)"><span class="ni">◈</span><span class="nl">Temp.</span></button>
+    <button class="nb" onclick="goSc('compras',this)"><span class="ni">◧</span><span class="nl">Compras</span></button>
+    <button class="nb" onclick="goSc('turno',this)"><span class="ni">◑</span><span class="nl">Turno</span></button>
+    <button class="nb" onclick="goSc('obs',this)"><span class="ni">✎</span><span class="nl">Notas</span></button>
+    <button class="nb" onclick="goSc('semaforo',this)"><span class="ni">◕</span><span class="nl">Semáforo</span></button>
+    <button class="nb" onclick="goSc('notif',this)"><span class="ni">◎</span><span class="nl">Avisos</span></button>
+  </nav>
+</div>
+
+<!-- MODALes -->
+<div class="mo" id="mo-newcorr" onclick="cmo(event,'mo-newcorr')">
+  <div class="ms"><div class="mh"></div><div class="mt2">Nueva correctiva</div>
+    <div class="f"><label>Descripción</label><textarea id="nc-d" placeholder="¿Qué hay que arreglar?"></textarea></div>
+    <div class="f"><label>Ubicación</label><select id="nc-l"><option>Sala 1</option><option>Sala 2</option><option>VIP</option><option>Camarines Sala 1</option><option>Camarines Sala 2</option><option>Baños</option><option>Foyer</option><option>Escenario</option><option>Tablero eléctrico</option><option>Ascensor</option><option>Marquesina LED</option><option>Depósito</option><option>Otro</option></select></div>
+    <div class="f"><label>Urgencia</label>
+      <div class="ug2" id="nc-urg"><div class="uo uu su" onclick="sU(this)"><div class="un2">Urgente</div></div><div class="uo up" onclick="sU(this)"><div class="un2">Prioritaria</div></div><div class="uo un" onclick="sU(this)"><div class="un2">Necesaria</div></div></div>
+    </div>
+    <div class="f" id="nc-assign-wrap"><label>Asignar a</label><select id="nc-a"><option>David Vargas</option><option>Andrés Patiño</option><option>Ambos</option></select></div>
+    <div class="ma"><button class="bs bs-g" onclick="closeM('mo-newcorr')">Cancelar</button><button class="bs bs-a" onclick="addCorr()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-bita" onclick="cmo(event,'mo-bita')">
+  <div class="ms"><div class="mh"></div><div class="mt2" id="bita-title">En proceso</div>
+    <input type="hidden" id="bita-id"/>
+    <div id="bita-ex" style="margin-bottom:8px;"></div>
+    <div id="bita-entries" style="max-height:150px;overflow-y:auto;margin-bottom:8px;"></div>
+    <div class="f" id="bita-new-wrap"><label>Agregar avance</label><textarea id="bita-t" placeholder="¿Qué hiciste o qué falta?"></textarea></div>
+    <div class="f" id="bita-fecha-wrap"><label>Fecha estimada resolución (opcional)</label><input type="date" id="bita-f"/></div>
+    <div class="ma" id="bita-ma"><button class="bs bs-g" onclick="closeM('mo-bita')">Cerrar</button><button class="bs bs-a" onclick="saveBita()">Agregar</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-resolve" onclick="cmo(event,'mo-resolve')">
+  <div class="ms"><div class="mh"></div><div class="mt2">Registrar resolución</div>
+    <input type="hidden" id="res-id"/>
+    <div class="f"><label>¿Quién lo resolvió?</label><select id="res-w"><option>David Vargas</option><option>Andrés Patiño</option><option>Ambos</option><option>Empresa externa</option></select></div>
+    <div class="f"><label>Hora de resolución</label><input type="text" id="res-wh" placeholder="ej: 10:30 hs"/></div>
+    <div class="f"><label>¿Qué se hizo exactamente?</label><textarea id="res-o" placeholder="Describí la solución..."></textarea></div>
+    <div class="f"><label>¿Definitivo o provisorio?</label><select id="res-t" onchange="document.getElementById('res-prov').style.display=this.value==='Provisorio'?'block':'none'"><option value="Definitivo">Definitivo – cerrado</option><option value="Provisorio">Provisorio – requiere seguimiento</option></select></div>
+    <div id="res-prov" style="display:none;background:var(--ybg);border:0.5px solid var(--ybd);border-radius:8px;padding:7px 9px;font-size:10px;color:var(--yel);margin-bottom:4px;">Quedará pendiente de resolución definitiva.</div>
+    <div class="ma"><button class="bs bs-g" onclick="closeM('mo-resolve')">Cancelar</button><button class="bs bs-gr" onclick="confirmRes()">Confirmar</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-deriv" onclick="cmo(event,'mo-deriv')">
+  <div class="ms"><div class="mh"></div><div class="mt2">Derivar tarea</div>
+    <input type="hidden" id="deriv-id"/>
+    <div style="font-size:10px;color:var(--t3);margin-bottom:7px;">¿A quién derivás esta tarea?</div>
+    <div id="deriv-targets"></div>
+    <div class="f" style="margin-top:7px;"><label>Motivo (obligatorio)</label><textarea id="deriv-m" placeholder="Explicá por qué derivás..."></textarea></div>
+    <div class="ma"><button class="bs bs-g" onclick="closeM('mo-deriv')">Cancelar</button><button class="bs bs-p" onclick="confirmDeriv()">Derivar</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-temp" onclick="cmo(event,'mo-temp')">
+  <div class="ms"><div class="mh"></div><div class="mt2" id="mo-temp-t">Temperatura</div>
+    <div class="f"><label>Temperatura (°C)</label><input type="number" id="tval" placeholder="22" min="0" max="50" step="0.5"/></div>
+    <div class="f"><label>Contexto</label><select id="tctx"><option>Sala vacía – sin función</option><option>Pre-función (apertura de puertas)</option><option>Función 1 – inicio</option><option>Función 1 – llena</option><option>Recambio de función</option><option>Función 2 – inicio</option><option>Función 2 – llena</option><option>Función 3 – inicio</option><option>Función 3 – llena</option><option>Post-función</option></select></div>
+    <div style="font-size:10px;color:var(--t3);margin-bottom:9px;">Hora registrada automáticamente.</div>
+    <div class="ma"><button class="bs bs-g" onclick="closeM('mo-temp')">Cancelar</button><button class="bs bs-a" onclick="saveTemp()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-newcompra" onclick="cmo(event,'mo-newcompra')">
+  <div class="ms"><div class="mh"></div><div class="mt2">Registrar pedido / compra</div>
+    <div class="f"><label>Tipo</label><select id="cp-t" onchange="document.getElementById('cp-apwrap').style.display=this.value==='extra'?'block':'none'"><option value="regular">Regular mensual</option><option value="extra">Extraordinaria – requiere aprobación</option></select></div>
+    <div class="f"><label>Descripción</label><textarea id="cp-d" placeholder="¿Qué se necesita?"></textarea></div>
+    <div class="f"><label>Proveedor</label><input type="text" id="cp-p" placeholder="ej: Ejman, La Toallera..."/></div>
+    <div class="f"><label>Monto estimado</label><input type="text" id="cp-m" placeholder="$ ..."/></div>
+    <div id="cp-apwrap" style="display:none;">
+      <div class="f"><label>Aprobación requerida de</label><div class="cw" id="cp-apchips"><div class="ch sc" data-p="Ariel K">Ariel K</div><div class="ch" data-p="Jon">Jon</div><div class="ch" data-p="Mano">Mano</div><div class="ch" data-p="Carla">Carla</div></div></div>
+    </div>
+    <div class="f"><label>Adjuntar factura / remito</label>
+      <button class="fb" onclick="document.getElementById('cp-fi').click()">📷 Foto o archivo</button>
+      <input type="file" id="cp-fi" accept="image/*" capture="environment" style="display:none;" onchange="prevFoto(this,'cp-fp')"/>
+      <img id="cp-fp" class="fp" alt=""/>
+    </div>
+    <div class="f"><label>¿Ya se realizó?</label><select id="cp-r"><option value="no">No – pedido pendiente</option><option value="si">Sí – ya comprada</option></select></div>
+    <div class="ma"><button class="bs bs-g" onclick="closeM('mo-newcompra')">Cancelar</button><button class="bs bs-a" onclick="addCompra()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-compradet" onclick="cmo(event,'mo-compradet')">
+  <div class="ms"><div class="mh"></div><div class="mt2" id="cd-title">Detalle</div>
+    <div id="cd-body"></div><div class="ma" id="cd-actions"></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-turno" onclick="cmo(event,'mo-turno')">
+  <div class="ms"><div class="mh"></div><div class="mt2">Firma de turno</div>
+    <div class="f"><label>¿Qué hiciste hoy? (resumen)</label><textarea id="t-hecho" placeholder="Tareas completadas, trabajos realizados..."></textarea></div>
+    <div class="f"><label>¿Qué quedó pendiente?</label><textarea id="t-pend" placeholder="Tareas que no pudiste terminar y por qué..."></textarea></div>
+    <div class="f"><label>¿Algo urgente para mañana?</label><textarea id="t-urg" placeholder="Problemas detectados, reparaciones que no pueden esperar..."></textarea></div>
+    <div class="f"><label>Notas adicionales (visitas, proveedores, observaciones)</label><textarea id="t-notas" placeholder="Vino el técnico del ascensor, dejó presupuesto. El fumigador confirma para el viernes..."></textarea></div>
+    <div class="f"><label>Estado general del teatro hoy</label>
+      <div style="display:flex;gap:5px;">
+        <button class="estado-btn" data-v="bien" onclick="selEstado(this)" style="flex:1;padding:7px;border-radius:8px;border:1px solid var(--gbd);background:var(--gbg);color:var(--grn);font-size:11px;cursor:pointer;font-family:var(--fn);">✓ Bien</button>
+        <button class="estado-btn" data-v="regular" onclick="selEstado(this)" style="flex:1;padding:7px;border-radius:8px;border:1px solid var(--b2);background:var(--s1);color:var(--t2);font-size:11px;cursor:pointer;font-family:var(--fn);">~ Regular</button>
+        <button class="estado-btn" data-v="mal" onclick="selEstado(this)" style="flex:1;padding:7px;border-radius:8px;border:1px solid var(--b2);background:var(--s1);color:var(--t2);font-size:11px;cursor:pointer;font-family:var(--fn);">✗ Con problemas</button>
+      </div>
+    </div>
+    <div class="ma"><button class="bs bs-g" onclick="closeM('mo-turno')">Cancelar</button><button class="bs bs-a" onclick="firmarTurno()">Firmar turno</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-obs" onclick="cmo(event,'mo-obs')">
+  <div class="ms"><div class="mh"></div><div class="mt2">Nueva observación / nota</div>
+    <div class="f"><label>Categoría</label>
+      <select id="obs-cat"><option>General</option><option>Proveedor / Visita técnica</option><option>Requerimiento de compra</option><option>Seguimiento / Reparación pendiente</option><option>Aviso a equipo</option><option>Comentario de producción</option><option>Actores / Elenco</option><option>Público / Incidente</option><option>Otro</option></select>
+    </div>
+    <div class="f"><label>Nota</label><textarea id="obs-t" placeholder="Escribí tu observación o nota..."></textarea></div>
+    <div class="f"><label>Requiere seguimiento</label><select id="obs-seg"><option value="no">No</option><option value="si">Sí – quedará marcada</option></select></div>
+    <div class="ma"><button class="bs bs-g" onclick="closeM('mo-obs')">Cancelar</button><button class="bs bs-a" onclick="addObs()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-ausencia" onclick="cmo(event,'mo-ausencia')">
+  <div class="ms"><div class="mh"></div><div class="mt2">Registrar ausencia</div>
+    <div class="f"><label>¿Quién falta hoy?</label>
+      <select id="aus-who"><option value="david">David Vargas</option><option value="andres">Andrés Patiño</option><option value="ambos">Ambos</option></select>
+    </div>
+    <div class="f"><label>Motivo</label><select id="aus-motivo"><option>Enfermedad</option><option>Franco</option><option>Vacaciones</option><option>Licencia</option><option>Otro</option></select></div>
+    <div class="f"><label>Observación (opcional)</label><input type="text" id="aus-obs" placeholder="Detalle adicional..."/></div>
+    <div class="ma"><button class="bs bs-g" onclick="closeM('mo-ausencia')">Cancelar</button><button class="bs bs-o" onclick="regAusencia()">Registrar</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-admin" onclick="cmo(event,'mo-admin')">
+  <div class="ms"><div class="mh"></div><div class="mt2" id="admin-title">Administración</div>
+    <div id="admin-body"></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-edittask" onclick="cmo(event,'mo-edittask')">
+  <div class="ms"><div class="mh"></div><div class="mt2" id="et-title">Tarea preventiva</div>
+    <input type="hidden" id="et-id"/>
+    <div class="f"><label>Descripción</label><input type="text" id="et-task" placeholder="Nombre de la tarea"/></div>
+    <div class="f"><label>Sector / Ubicación</label><input type="text" id="et-sector" placeholder="ej: Sala 1, Baños, General..."/></div>
+    <div class="f"><label>Responsable</label><select id="et-resp"><option value="david">David Vargas</option><option value="andres">Andrés Patiño</option><option value="ambos">Ambos</option></select></div>
+    <div class="f"><label>Periodicidad</label>
+      <select id="et-period" onchange="toggleEtFecha()">
+        <option>Diaria</option><option>Semanal</option><option>Quincenal</option>
+        <option>Mensual</option><option>Bimensual</option><option>Trimestral</option>
+        <option>Cuatrimestral</option><option>Semestral</option><option>Anual</option>
+        <option value="fecha-especifica">Fecha específica (no repetitiva)</option>
+      </select>
+    </div>
+    <div class="f" id="et-fecha-wrap" style="display:none;">
+      <label>Fecha de ejecución</label>
+      <input type="date" id="et-fecha"/>
+    </div>
+    <div class="f">
+      <label>Próxima fecha programada <span style="font-size:9px;color:var(--t3);">(opcional – para tareas con fecha de vencimiento)</span></label>
+      <input type="date" id="et-proxima"/>
+    </div>
+    <div class="f"><label>Notas / Instrucciones para ejecutores</label>
+      <textarea id="et-notas" placeholder="Instrucciones específicas, herramientas necesarias, proveedores, contactos..."></textarea>
+    </div>
+    <div class="f"><label>Reporta a</label><select id="et-rep"><option>Ariel Koczak</option><option>Carla Carrieri</option><option>Guillermo</option><option>Mano S.</option><option>Jon</option></select></div>
+    <div style="background:var(--s2);border-radius:8px;padding:8px 10px;font-size:10px;color:var(--t3);margin-bottom:4px;">
+      Las tareas preventivas con periodicidad se reactivarán automáticamente cuando venza el período definido.
+    </div>
+    <div class="ma"><button class="bs bs-g" onclick="closeM('mo-edittask')">Cancelar</button><button class="bs bs-a" onclick="saveTask()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-edituser" onclick="cmo(event,'mo-edituser')">
+  <div class="ms"><div class="mh"></div><div class="mt2">Editar usuario</div>
+    <input type="hidden" id="eu-key"/>
+    <div class="f"><label>Nombre</label><input type="text" id="eu-name"/></div>
+    <div class="f"><label>PIN (4 dígitos)</label><input type="text" id="eu-pin" maxlength="4" inputmode="numeric"/></div>
+    <div class="f"><label>Rol</label><input type="text" id="eu-role"/></div>
+    <div class="ma"><button class="bs bs-g" onclick="closeM('mo-edituser')">Cancelar</button><button class="bs bs-a" onclick="saveUser()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: AGREGAR TAREA EXTRA (no planificada) -->
+<div class="mo" id="mo-addextra" onclick="cmo(event,'mo-addextra')">
+  <div class="ms"><div class="mh"></div><div class="mt2">Agregar tarea no planificada</div>
+    <div style="font-size:10px;color:var(--t3);margin-bottom:8px;line-height:1.5;">Registrá algo que hiciste o que te surgió y no estaba en el plan: mejora, limpieza extra, relevamiento, pedido, reparación chica, etc.</div>
+    <div class="f"><label>¿Qué hiciste?</label><textarea id="ex-desc" placeholder="ej: Limpié el fondo del escenario, revisé la instalación del baño VIP, reacomodé el depósito..."></textarea></div>
+    <div class="f"><label>Categoría</label>
+      <select id="ex-cat"><option>Limpieza extra</option><option>Relevamiento / Inspección</option><option>Mejora / Pequeña reparación</option><option>Pedido / Compra</option><option>Coordinación</option><option>Otro</option></select>
+    </div>
+    <div class="f"><label>¿Cuánto tiempo llevó?</label>
+      <select id="ex-time"><option>Menos de 15 min</option><option>15-30 min</option><option>30-60 min</option><option>Más de 1 hora</option></select>
+    </div>
+    <div class="ma"><button class="bs bs-g" onclick="closeM('mo-addextra')">Cancelar</button><button class="bs bs-a" onclick="saveExtra()">Registrar</button></div>
+  </div>
+</div>
+
+<div class="toast2" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// USERS — roles: exec | reporter | semiadmin | admin
+// ════════════════════════════════════════════════════════════════════════════
+const DEFAULT_USERS={
+  david:{name:'David Vargas',initials:'DV',pin:'1234',color:'#4c7cf8',bg:'#4c7cf820',role:'exec',roleLabel:'Ejecución'},
+  andres:{name:'Andrés Patiño',initials:'AP',pin:'2345',color:'#ff9830',bg:'#ff983020',role:'exec',roleLabel:'Ejecución'},
+  ariel:{name:'Ariel Koczak',initials:'AK',pin:'3456',color:'#28d464',bg:'#28d46420',role:'semiadmin',roleLabel:'Jefe Mantenimiento'},
+  guillermo:{name:'Guillermo',initials:'GU',pin:'4567',color:'#ff4455',bg:'#ff445520',role:'reporter',roleLabel:'Jefe de Sala'},
+  carla:{name:'Carla Carrieri',initials:'CC',pin:'5678',color:'#f5c030',bg:'#f5c03020',role:'reporter',roleLabel:'Coordinadora'},
+  mano:{name:'Mano S.',initials:'MS',pin:'6789',color:'#a290f8',bg:'#a290f820',role:'reporter',roleLabel:'Productor'},
+  jon:{name:'Jon (Director)',initials:'JN',pin:'7890',color:'#f070b8',bg:'#f070b820',role:'admin',roleLabel:'Director / Admin'},
+};
+
+const BITA_EX=[
+  'Revisé el problema, necesito conseguir el repuesto',
+  'Hice una reparación provisoria, falta el definitivo',
+  'Avisé al proveedor, confirma para el miércoles',
+  'Ya conseguí el material, lo termino en el cruce de las 15 hs',
+  'Necesito que Andrés me ayude con esto, es para dos',
+  'Esperando respuesta de Ariel para saber cómo proceder',
+];
+
+const DEFAULT_PREV=[
+  {id:'p01',task:'Chequeo butacas & apoyabrazos',period:'Diaria',resp:'ambos',reporta:'Carla Carrieri',sector:'Sala 1 y 2'},
+  {id:'p02',task:'Encendido y chequeo Marquesinas LED',period:'Diaria',resp:'david',reporta:'Carla Carrieri',sector:'Exterior'},
+  {id:'p03',task:'Carga batería Oruga Sala 2',period:'Diaria',resp:'andres',reporta:'Mano S.',sector:'Sala 2'},
+  {id:'p04',task:'Chequeo equipos climatización / calefacción',period:'Diaria',resp:'ambos',reporta:'Carla Carrieri',sector:'Climatización'},
+  {id:'p05',task:'Sacada de basura',period:'Diaria',resp:'ambos',reporta:'Carla Carrieri',sector:'General'},
+  {id:'p06',task:'Supervisión equipo de limpieza',period:'Diaria',resp:'andres',reporta:'Guillermo',sector:'General'},
+  {id:'p07',task:'Luces generales del establecimiento',period:'Diaria',resp:'david',reporta:'Ariel Koczak',sector:'General'},
+  {id:'p08',task:'Limpieza fosa túnel',period:'Diaria',resp:'david',reporta:'Ariel Koczak',sector:'Subsuelo'},
+  {id:'p09',task:'Chequeo preventivo Oruga Sala 2',period:'Semanal',resp:'david',reporta:'Mano S.',sector:'Sala 2'},
+  {id:'p10',task:'Climatización preventivo semanal',period:'Semanal',resp:'david',reporta:'Ariel Koczak',sector:'Climatización'},
+  {id:'p11',task:'Baños (inodoros, mochilas, jaboneras, secadores)',period:'Semanal',resp:'andres',reporta:'Carla Carrieri',sector:'Baños',day:'Lunes'},
+  {id:'p12',task:'Orden y limpieza sectores generales',period:'Semanal',resp:'ambos',reporta:'Guillermo',sector:'General'},
+  {id:'p13',task:'Arreglos camarines (alfombras, humedades)',period:'Semanal',resp:'andres',reporta:'Carla Carrieri',sector:'Camarines'},
+  {id:'p14',task:'Puertas de sala y puertas blindex',period:'Semanal',resp:'andres',reporta:'Ariel Koczak',sector:'Accesos'},
+  {id:'p15',task:'Barandas (refuerzo y ajustes)',period:'Semanal',resp:'andres',reporta:'Carla Carrieri',sector:'General'},
+  {id:'p16',task:'Orden y limpieza sector mantenimiento',period:'Quincenal',resp:'ambos',reporta:'Carla Carrieri',sector:'Depósito'},
+  {id:'p17',task:'Marquesinas LED mantenimiento preventivo',period:'Quincenal',resp:'david',reporta:'Carla Carrieri',sector:'Exterior'},
+  {id:'p18',task:'Limpieza canaletas y desagües',period:'Quincenal',resp:'andres',reporta:'Ariel Koczak',sector:'General'},
+  {id:'p19',task:'Limpieza motor fosa séptica',period:'Quincenal',resp:'ambos',reporta:'Ariel Koczak',sector:'Subsuelo'},
+  {id:'p20',task:'Tableros eléctricos (control, ajustes, limpieza)',period:'Quincenal',resp:'david',reporta:'Ariel Koczak',sector:'Eléctrico'},
+  {id:'p21',task:'Bombas de agua',period:'Quincenal',resp:'david',reporta:'Ariel Koczak',sector:'Hidráulico'},
+  {id:'p22',task:'Chequeo luces de emergencia',period:'Quincenal',resp:'david',reporta:'Ariel Koczak',sector:'General'},
+  {id:'p23',task:'Mantenimiento ascensor (Lenz)',period:'Mensual',resp:'david',reporta:'Ariel Koczak',sector:'Ascensor'},
+  {id:'p24',task:'Fumigación (Ariel Oviedo)',period:'Mensual',resp:'david',reporta:'Ariel Koczak',sector:'General'},
+  {id:'p25',task:'Compra artículos limpieza (Ejman)',period:'Mensual',resp:'andres',reporta:'Carla Carrieri',sector:'Depósito'},
+  {id:'p26',task:'Compra artículos baños (La Toallera)',period:'Mensual',resp:'andres',reporta:'Carla Carrieri',sector:'Baños'},
+  {id:'p27',task:'Enviar planillas HE mensuales',period:'Mensual',resp:'ambos',reporta:'Carla Carrieri',sector:'Admin'},
+  {id:'p28',task:'Cursos H&S obligatorios',period:'Mensual',resp:'ambos',reporta:'Carla Carrieri',sector:'Admin'},
+  {id:'p29',task:'Splits (Sala 1, Sala 2 y VIP)',period:'Mensual',resp:'david',reporta:'Ariel Koczak',sector:'Climatización'},
+  {id:'p30',task:'Pinches palomas',period:'Mensual',resp:'andres',reporta:'Carla Carrieri',sector:'Exterior'},
+  {id:'p31',task:'Pintura piso escenarios',period:'Trimestral',resp:'andres',reporta:'Carla Carrieri',sector:'Escenarios'},
+  {id:'p32',task:'Termotanques',period:'Trimestral',resp:'andres',reporta:'Ariel Koczak',sector:'Hidráulico'},
+  {id:'p33',task:'Instalaciones contra incendios (SUYAI)',period:'Trimestral',resp:'ambos',reporta:'Carla Carrieri',sector:'Seguridad'},
+  {id:'p34',task:'Tanque de agua + tanque de incendio',period:'Semestral',resp:'andres',reporta:'Ariel Koczak',sector:'Hidráulico'},
+  {id:'p35',task:'Limpieza agua de tanque (Ariel Oviedo)',period:'Semestral',resp:'ambos',reporta:'Ariel Koczak',sector:'Hidráulico'},
+  {id:'p36',task:'Pintura general del teatro',period:'Anual',resp:'andres',reporta:'Carla Carrieri',sector:'General'},
+  {id:'p37',task:'Recarga anual de matafuegos (DICAR)',period:'Anual',resp:'ambos',reporta:'Ariel Koczak',sector:'Seguridad'},
+];
+
+const SAMPLE_CORR=[
+  {id:'c001',task:'Butaca F-12 rota',loc:'Sala 1',urg:'URGENTE',reporter:'Guillermo',assignee:'David Vargas',status:'PENDIENTE',date:'Hoy 23:40',obs:'Público no pudo sentarse',bita:[],rBy:'',rWhen:'',rObs:'',rType:'',derivTo:'',derivM:'',sched:''},
+  {id:'c002',task:'Pérdida de agua camarín 3',loc:'Camarines Sala 1',urg:'PRIORITARIA',reporter:'Carla Carrieri',assignee:'Andrés Patiño',status:'EN PROCESO',date:'Hace 2 días',obs:'',bita:[{ts:'Ayer 14:00',who:'Andrés Patiño',text:'Revisé la cañería – junta rota. Busco repuesto mañana.'}],rBy:'',rWhen:'',rObs:'',rType:'',derivTo:'',derivM:'',sched:''},
+  {id:'c003',task:'Luz quemada pasillo B',loc:'Foyer',urg:'NECESARIA',reporter:'David Vargas',assignee:'David Vargas',status:'PENDIENTE',date:'Ayer',obs:'',bita:[],rBy:'',rWhen:'',rObs:'',rType:'',derivTo:'',derivM:'',sched:''},
+  {id:'c004',task:'Termostato sala VIP',loc:'VIP',urg:'URGENTE',reporter:'Guillermo',assignee:'Andrés Patiño',status:'RESUELTO',date:'25/04',obs:'',bita:[],rBy:'Andrés Patiño',rWhen:'25/04 16:30 hs',rObs:'Reemplazado mismo modelo. Funciona OK.',rType:'Definitivo',derivTo:'',derivM:'',sched:''},
+];
+
+const SAMPLE_COMPRAS=[
+  {id:'cp01',tipo:'regular',desc:'Artículos de limpieza (Ejman)',prov:'Ejman',monto:'$12.000',aprov:[],realizada:true,fecha:'20/04',foto:null,estado:'Realizada',aprobadaPor:''},
+  {id:'cp02',tipo:'extra',desc:'Bomba de agua de repuesto',prov:'Ferretería Central',monto:'$85.000',aprov:['Ariel K','Jon'],realizada:false,fecha:'Hoy',foto:null,estado:'Pendiente aprobación',aprobadaPor:''},
+];
+
+const SAMPLE_NOTIFS=[
+  {from:'Guillermo',initials:'GU',color:'#ff4455',msg:'Butaca F-12 rota Sala 1 – público no pudo sentarse.',when:'Anoche 23:40',unread:true},
+  {from:'Ariel Koczak',initials:'AK',color:'#28d464',msg:'Revisar pendientes antes del domingo.',when:'Ayer 17:15',unread:false},
+  {from:'Carla Carrieri',initials:'CC',color:'#f5c030',msg:'¿Revisaron la pérdida del camarín 3?',when:'Ayer 14:02',unread:false},
+];
+
+const SAMPLE_TURNOS=[
+  {id:'t001',who:'andres',name:'Andrés Patiño',color:'#ff9830',bg:'#ff983020',initials:'AP',ts:'Ayer 22:15',hecho:'Limpieza integral sala 2, chequeo butacas, carga oruga. Asistí al equipo de limpieza en el fondo.',pend:'La junta del camarín 3 – salgo a buscar el repuesto mañana.',urg:'',notas:'Vino el técnico de Lenz a revisar el ascensor. Dejó informe: todo OK, próximo service en 6 meses.',estado:'bien'},
+];
+
+const SAMPLE_OBS=[
+  {id:'o001',who:'guillermo',name:'Guillermo',color:'#ff4455',initials:'GU',ts:'Hoy 22:30',cat:'Público / Incidente',text:'Incidente en butaca F-12 durante la función de la noche. El público que la tenía asignada tuvo que reubicarse. Solicito reparación urgente.',seg:true},
+  {id:'o002',who:'mano',name:'Mano S.',color:'#a290f8',initials:'MS',ts:'Ayer 18:00',cat:'Comentario de producción',text:'La producción de "Los Jardines" pide que el camarín 1 tenga espejo adicional para el próximo fin de semana. Evaluar.',seg:false},
+];
+
+// ════════════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════════════
+let CU=null,SUK=null;
+let USERS=JSON.parse(localStorage.getItem('m4-users')||JSON.stringify(DEFAULT_USERS));
+let checks=JSON.parse(localStorage.getItem('m4-checks')||'{}');
+let corrs=JSON.parse(localStorage.getItem('m4-corrs')||JSON.stringify(SAMPLE_CORR));
+let prevs=JSON.parse(localStorage.getItem('m4-prevs')||JSON.stringify(DEFAULT_PREV));
+let temps=JSON.parse(localStorage.getItem('m4-temps')||'{}');
+let compras=JSON.parse(localStorage.getItem('m4-compras')||JSON.stringify(SAMPLE_COMPRAS));
+let turnos=JSON.parse(localStorage.getItem('m4-turnos')||JSON.stringify(SAMPLE_TURNOS));
+let obsArr=JSON.parse(localStorage.getItem('m4-obs')||JSON.stringify(SAMPLE_OBS));
+let ausencias=JSON.parse(localStorage.getItem('m4-aus')||'{}');
+let corrFilter='TODOS',comprasView='pendientes',prevView='david';
+let derivTarget=null,turnoEstado='bien';
+
+function dk(){const n=new Date();return `${n.getFullYear()}-${n.getMonth()}-${n.getDate()}`;}
+function ns(){const n=new Date();return `${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`;}
+function nf(){const n=new Date();return `${n.getDate()}/${n.getMonth()+1} ${ns()} hs`;}
+function save(){
+  localStorage.setItem('m4-users',JSON.stringify(USERS));
+  localStorage.setItem('m4-checks',JSON.stringify(checks));
+  localStorage.setItem('m4-corrs',JSON.stringify(corrs));
+  localStorage.setItem('m4-prevs',JSON.stringify(prevs));
+  localStorage.setItem('m4-temps',JSON.stringify(temps));
+  localStorage.setItem('m4-compras',JSON.stringify(compras));
+  localStorage.setItem('m4-turnos',JSON.stringify(turnos));
+  localStorage.setItem('m4-obs',JSON.stringify(obsArr));
+  localStorage.setItem('m4-aus',JSON.stringify(ausencias));
+}
+
+function isExec(){return USERS[CU]?.role==='exec';}
+function isAdmin(){return USERS[CU]?.role==='admin';}
+function isSemi(){return ['semiadmin','admin'].includes(USERS[CU]?.role);}
+function isReporter(){return ['reporter','semiadmin','admin'].includes(USERS[CU]?.role);}
+function canReport(){return !isExec()||true;} // everyone can report
+
+// ════════════════════════════════════════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════════════════════════════════════════
+function buildLogin(){
+  const g=document.getElementById('ugrid');g.innerHTML='';
+  Object.entries(USERS).forEach(([k,u])=>{
+    const b=document.createElement('button');b.className='ub';
+    b.innerHTML=`<div class="ua" style="background:${u.bg};color:${u.color};">${u.initials}</div><div class="un">${u.name.split(' ')[0]}</div><div class="ur">${u.roleLabel}</div>`;
+    b.onclick=()=>{SUK=k;document.querySelectorAll('.ub').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');document.getElementById('pin').focus();};
+    g.appendChild(b);
+  });
+}
+function doLogin(){
+  if(!SUK){document.getElementById('lerr').textContent='Seleccioná un usuario';return;}
+  const pin=document.getElementById('pin').value;
+  if(pin!==USERS[SUK].pin){document.getElementById('lerr').textContent='PIN incorrecto';document.getElementById('pin').value='';return;}
+  CU=SUK;
+  document.getElementById('ls').style.display='none';
+  document.getElementById('app').style.display='flex';
+  initApp();
+}
+document.getElementById('pin').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+// ════════════════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════════════════
+function initApp(){
+  const u=USERS[CU];
+  const n=new Date();
+  const days=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  document.getElementById('topdate').textContent=`${days[n.getDay()]} ${n.getDate()} ${months[n.getMonth()]}`;
+  document.getElementById('topname').textContent=u.name;
+  const av=document.getElementById('topav');av.textContent=u.initials;av.style.background=u.bg;av.style.color=u.color;
+  document.getElementById('notifdot').style.display=SAMPLE_NOTIFS.some(x=>x.unread)?'flex':'none';
+  // chips
+  document.querySelectorAll('#notify-chips2 .ch').forEach(c=>{c.onclick=()=>c.classList.toggle('sc');});
+  document.querySelectorAll('#cp-apchips .ch').forEach(c=>{c.onclick=()=>c.classList.toggle('sc');});
+  // adapt UI per role
+  adaptUI();
+  buildHome();buildPrev();buildCorr();buildCorrFilters();buildTemp();buildCompras();buildTurno();buildObs();buildSemaforo();buildNotifs();
+  if(isSemi()||isAdmin())buildDash();
+  setInterval(checkTempAlerts,60000);
+}
+
+function adaptUI(){
+  // hide new corr button for semiadmin/reporter (they can still report)
+  if(isSemi()&&!isAdmin()){document.getElementById('btn-new-corr').style.display='none';}
+  // hide turno form for non-exec
+  // hide exec task section for non-exec in home
+  if(!isExec()&&!isAdmin()){document.getElementById('hmytasks-wrap').style.display='none';}
+  // show dashboard nav only for semiadmin+
+  if(isSemi()||isAdmin()){
+    const bn=document.getElementById('botnav');
+    if(!document.getElementById('nb-dash')){
+      const b=document.createElement('button');b.className='nb';b.id='nb-dash';
+      b.innerHTML='<span class="ni">▣</span><span class="nl">Dashboard</span>';
+      b.onclick=()=>{goSc('dash',b);};
+      bn.appendChild(b);
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// HOME
+// ════════════════════════════════════════════════════════════════════════════
+function buildHome(){
+  const myKey=['david','andres'].includes(CU)?CU:null;
+  const myT=myKey?prevs.filter(p=>p.resp===myKey&&p.period==='Diaria'):[];
+  const sh=prevs.filter(p=>p.resp==='ambos'&&p.period==='Diaria');
+  const allT=[...myT,...sh];
+  const doneCount=allT.filter(p=>checks[dk()+p.id]).length;
+  const urgC=corrs.filter(c=>c.urg==='URGENTE'&&c.status!=='RESUELTO').length;
+  const pendC=corrs.filter(c=>c.status==='PENDIENTE').length;
+  const aus=ausencias[dk()];
+
+  // ausencia banner
+  let recHTML='';
+  if(aus){recHTML=`<div style="background:var(--obg);border:0.5px solid var(--obd);border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:11px;color:var(--ora);">⚠ Ausencia registrada: <strong>${aus.who==='ambos'?'David y Andrés':aus.who==='david'?'David Vargas':'Andrés Patiño'}</strong> · ${aus.motivo}</div>`;}
+
+  // recordatorios vencidos
+  const venc=getVencidas();
+  let recVHTML='';
+  if(venc.length&&isExec()){recVHTML=`<div class="sh">Tareas con periodicidad vencida</div>${venc.slice(0,3).map(p=>`<div class="rec-card"><div class="rec-icon">⏰</div><div><div class="rec-task">${p.task}</div><div class="rec-sub">${p.sector}</div><div class="rec-period">${p.period} – sin registrar</div></div></div>`).join('')}`;}
+
+  document.getElementById('hrecord').innerHTML=recHTML;
+  document.getElementById('hstats').innerHTML=`
+    <div class="sb" onclick="goSc('prev',document.querySelectorAll('.nb')[1])"><div class="sn" style="color:var(--ac2);">${allT.length}</div><div class="sl" style="color:var(--t1);">Tareas hoy</div></div>
+    <div class="sb" onclick="goCorrFilter('URGENTE')" style="${urgC>0?'border-color:var(--rbd);':''}">
+      <div class="sn" style="color:var(--red);">${urgC}</div>
+      <div class="sl" style="color:${urgC>0?'#ffffff':'var(--t2)'};">Urgentes</div>
+    </div>
+    <div class="sb" onclick="goCorrFilter('PENDIENTE')"><div class="sn" style="color:var(--ora);">${pendC}</div><div class="sl" style="color:var(--t1);">Pendientes</div></div>
+    <div class="sb" onclick="showCompletadas()"><div class="sn" style="color:var(--grn);">${doneCount}</div><div class="sl" style="color:var(--t1);">Completadas</div></div>`;
+
+  let alertHTML='';
+  corrs.filter(c=>c.urg==='URGENTE'&&c.status!=='RESUELTO').forEach(c=>{
+    alertHTML+=`<div class="ac"><div class="at">⚠ ${c.task}</div><div class="ab">${c.loc} · ${c.reporter}</div><div class="aa"><button class="bs bs-a" onclick="goCorrFilter('URGENTE')">Ver</button><button class="bs bs-g" onclick="this.closest('.ac').remove()">OK</button></div></div>`;
+  });
+  document.getElementById('halerts').innerHTML=alertHTML;
+
+  if(isExec()||isAdmin()){
+    // Todas mis tareas: propias + compartidas (ambos) unificadas
+    const allDaily=myKey
+      ? prevs.filter(p=>(p.resp===myKey||p.resp==='ambos')&&p.period==='Diaria')
+      : prevs.filter(p=>p.period==='Diaria');
+    document.getElementById('hmytasks').innerHTML=
+      allDaily.map(tCard).join('')+
+      `<button onclick="openAddExtra()" style="width:100%;background:var(--s2);border:0.5px solid var(--b2);border-radius:10px;padding:9px;color:var(--ac2);font-size:11px;font-family:var(--fn);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;margin-top:4px;">+ Tarea no planificada</button>`;
+    document.getElementById('hshared').innerHTML='';
+    attachCks();
+  }
+
+  // semaforo inline unificado en home
+  const smData=getSemaforoData();
+  document.getElementById('hsemiforo-mini').innerHTML=`
+    <div class="sh" style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;"><span>Semáforo del día</span><span style="font-size:9px;color:var(--acc);cursor:pointer;" onclick="goSc('semaforo',document.querySelectorAll('.nb')[7])">ver completo →</span></div>
+    <div style="display:flex;gap:6px;margin-bottom:6px;">
+      ${['david','andres'].map(k=>{const u=USERS[k];const d=smData[k];const col=d.pct>=80?'var(--grn)':d.pct>=50?'var(--yel)':'var(--red)';return `<div style="flex:1;background:var(--s1);border:0.5px solid var(--b1);border-radius:10px;padding:9px 8px;cursor:pointer;" onclick="goSc('semaforo',document.querySelectorAll('.nb')[7])"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11px;color:var(--t1);">${u.name.split(' ')[0]}</span><span style="font-size:16px;font-weight:600;color:${col};">${d.pct}%</span></div><div style="height:3px;background:var(--s3);border-radius:2px;margin-top:5px;"><div style="height:3px;border-radius:2px;background:${col};width:${d.pct}%;transition:width 0.4s;"></div></div><div style="font-size:9px;color:var(--t3);margin-top:3px;">${d.done}/${d.total} diarias</div></div>`;}).join('')}
+    </div>
+    ${recVHTML}`;
+}
+
+function goCorrFilter(f){
+  corrFilter=f;
+  // find corr nav button
+  const nbs=document.querySelectorAll('.nb');
+  let corrBtn=null;
+  nbs.forEach(b=>{if(b.querySelector('.nl')?.textContent==='Correctivas')corrBtn=b;});
+  goSc('corr',corrBtn||nbs[2]);
+  buildCorr();buildCorrFilters();
+}
+
+function getVencidas(){
+  // simplified: return periodic tasks not checked this week
+  return prevs.filter(p=>['Semanal','Quincenal','Mensual'].includes(p.period)&&!checks[dk()+p.id]).slice(0,5);
+}
+
+function showCompletadas(){
+  const t=dk();
+  const done=prevs.filter(p=>checks[t+p.id]);
+  const doneC=corrs.filter(c=>c.status==='RESUELTO');
+  document.getElementById('bita-title').textContent='Completadas hoy';
+  document.getElementById('bita-id').value='__view__';
+  document.getElementById('bita-ex').innerHTML='';
+  document.getElementById('bita-new-wrap').style.display='none';
+  document.getElementById('bita-fecha-wrap').style.display='none';
+  document.getElementById('bita-ma').innerHTML='<button class="bs bs-g" onclick="closeM(\'mo-bita\')" style="flex:1;">Cerrar</button>';
+  let html=(done.length?'<div style="font-size:9px;color:var(--t3);margin-bottom:5px;text-transform:uppercase;">Preventivas</div>'+done.map(p=>`<div class="be"><div class="bwho">${p.resp==='ambos'?'Ambos':p.resp==='david'?'David':'Andrés'}</div><div class="bt3">${p.task}</div></div>`).join(''):'')
+    +(doneC.length?'<div style="font-size:9px;color:var(--t3);margin:7px 0 5px;text-transform:uppercase;">Correctivas resueltas</div>'+doneC.map(c=>`<div class="be"><div style="display:flex;justify-content:space-between;"><span class="bwho">${c.rBy}</span><span class="bw">${c.rWhen}</span></div><div class="bt3">${c.task} <span style="color:${c.rType==='Definitivo'?'var(--grn)':'var(--yel)'};font-size:9px;">${c.rType}</span></div>${c.rObs?`<div class="bt3" style="color:var(--t2);font-style:italic;">"${c.rObs}"</div>`:''}</div>`).join(''):'')
+    ||'<div style="color:var(--t3);font-size:11px;padding:8px 0;">Sin completadas aún</div>';
+  document.getElementById('bita-entries').innerHTML=html;
+  openM('mo-bita');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// TASK CARD
+// ════════════════════════════════════════════════════════════════════════════
+function tCard(p){
+  const t=dk();const done=checks[t+p.id];
+  const pc={Diaria:'g',Semanal:'b',Quincenal:'p',Mensual:'p',Trimestral:'o',Semestral:'o',Anual:'r'}[p.period]||'b';
+  const bcls={g:'bg2',b:'bb2',p:'bp',o:'bo',r:'br'}[pc];
+  const isOverdue=p.proxima&&new Date(p.proxima)<new Date()&&!done;
+  const isOvd=p.proxima&&new Date(p.proxima)<new Date()&&!done;
+  const pLabel=p.period==='fecha-especifica'?`📅 ${p.fechaEsp||'fecha'}`:p.period;
+  return `<div class="card ${done?'dim':''}${isOvd?' lu':''}"><div class="tr2"><div class="ck ${done?'on':''}" data-id="${p.id}" onclick="togTask('${p.id}',this)"><svg viewBox="0 0 12 10"><polyline points="1,5 4,8 11,1"/></svg></div><div style="flex:1;min-width:0;"><div class="tk ${done?'st':''}">${p.task}</div><div class="tm">${p.sector}${p.day?' · '+p.day:''}</div><div class="tgs"><span class="bdg ${bcls}">${pLabel}</span>${p.resp==='ambos'?'<span class="bdg bb2">Compartida</span>':''}${isOvd?'<span class="bdg br">Vencida</span>':''}</div>${p.notas&&!done?`<div class="tm" style="margin-top:3px;color:var(--ac2);font-size:9px;">📌 ${p.notas.slice(0,55)}</div>`:''}</div></div></div>`;
+}
+function togTask(id,el){
+  if(!isExec()&&!isAdmin())return;
+  const key=dk()+id;checks[key]=!checks[key];save();
+  const card=el.closest('.card');
+  el.classList.toggle('on',checks[key]);
+  card.querySelector('.tk')?.classList.toggle('st',checks[key]);
+  card.classList.toggle('dim',checks[key]);
+  if(checks[key]){
+    showToast('✓ Completada');
+    // Auto-advance proxima for repeating tasks (only if not manually set)
+    const p=prevs.find(x=>x.id===id);
+    if(p&&p.period&&!p.proximaManual&&p.period!=='fecha-especifica'){
+      const newProx=calcProxima(p.period,'');
+      if(newProx){p.proxima=newProx;save();}
+    }
+  }
+  buildHome();
+}
+function attachCks(){
+  const t=dk();
+  document.querySelectorAll('.ck[data-id]').forEach(el=>{
+    const id=el.getAttribute('data-id'),done=!!checks[t+id];
+    el.classList.toggle('on',done);
+    const card=el.closest('.card');
+    card?.querySelector('.tk')?.classList.toggle('st',done);
+    card?.classList.toggle('dim',done);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PREVENTIVAS
+// ════════════════════════════════════════════════════════════════════════════
+function buildPrev(){
+  const myKey=['david','andres'].includes(CU)?CU:'david';prevView=myKey;
+  // Tabs: David | Andrés (no separate Compartidas — shared appear in both)
+  document.getElementById('prev-tog').innerHTML=[{k:'david',l:'David'},{k:'andres',l:'Andrés'}]
+    .map(v=>`<button class="to ${v.k===myKey?'st':''}" onclick="sPrev('${v.k}',this)">${v.l}</button>`).join('');
+  rPrevList();
+}
+function sPrev(k,btn){prevView=k;document.querySelectorAll('#prev-tog .to').forEach(b=>b.classList.remove('st'));btn.classList.add('st');rPrevList();}
+function rPrevList(){
+  let html='';
+  // For each person: show their own tasks PLUS shared tasks (ambos)
+  ['Diaria','Semanal','Quincenal','Mensual','Bimensual','Trimestral','Cuatrimestral','Semestral','Anual','fecha-especifica'].forEach(per=>{
+    const tasks=prevs.filter(p=>(p.resp===prevView||p.resp==='ambos')&&p.period===per);
+    if(!tasks.length)return;
+    html+=`<div class="sh">${per}</div>`+tasks.map(tCard).join('');
+  });
+  document.getElementById('prev-list').innerHTML=html;attachCks();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// CORRECTIVAS
+// ════════════════════════════════════════════════════════════════════════════
+const urgMap={URGENTE:{cls:'lu',badge:'br'},PRIORITARIA:{cls:'lp',badge:'bo'},NECESARIA:{cls:'ln',badge:'by'}};
+const stBadge={PENDIENTE:'bgr','EN PROCESO':'bb2',RESUELTO:'bg2',REPROGRAMADO:'by',DERIVADA:'bp'};
+
+function buildCorrFilters(){
+  document.getElementById('corrfilters').innerHTML=['TODOS','PENDIENTE','EN PROCESO','RESUELTO','REPROGRAMADO','DERIVADA','URGENTE'].map(f=>
+    `<button onclick="sCF('${f}',this)" style="font-size:8px;padding:2px 7px;border-radius:20px;border:0.5px solid var(--b2);background:${f===corrFilter?'var(--s3)':'var(--s1)'};color:${f===corrFilter?'var(--t1)':'var(--t2)'};cursor:pointer;font-family:var(--fn);white-space:nowrap;">${f}</button>`
+  ).join('');
+}
+function sCF(f,btn){corrFilter=f;document.querySelectorAll('#corrfilters button').forEach(b=>{b.style.background='var(--s1)';b.style.color='var(--t2)';});btn.style.background='var(--s3)';btn.style.color='var(--t1)';buildCorr();}
+
+function buildCorr(){
+  let list=[...corrs];
+  if(corrFilter==='URGENTE')list=list.filter(c=>c.urg==='URGENTE');
+  else if(corrFilter!=='TODOS')list=list.filter(c=>c.status===corrFilter);
+  const active=list.filter(c=>c.status!=='RESUELTO');
+  const resolved=list.filter(c=>c.status==='RESUELTO');
+  const canAct=isExec()||isAdmin();
+  let html='';
+  active.forEach(c=>{
+    const u=urgMap[c.urg]||{cls:'',badge:'bgr'};
+    const sb=stBadge[c.status]||'bgr';
+    const lastB=c.bita?.length?c.bita[c.bita.length-1]:null;
+    html+=`<div class="card ${u.cls}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px;margin-bottom:4px;">
+        <div class="tk" style="flex:1;">${c.task}</div><span class="bdg ${u.badge}">${c.urg}</span>
+      </div>
+      <div class="tm">${c.loc} · ${c.date}</div>
+      ${c.obs?`<div class="tm" style="font-style:italic;margin-top:2px;">"${c.obs}"</div>`:''}
+      ${c.sched?`<div class="tm" style="color:var(--yel);margin-top:2px;">📅 ${c.sched}</div>`:''}
+      ${lastB?`<div style="background:var(--s2);border-radius:7px;padding:5px 7px;margin-top:5px;"><div style="font-size:9px;color:var(--t3);">${lastB.ts} · ${lastB.who.split(' ')[0]}</div><div style="font-size:10px;color:var(--t2);margin-top:1px;">${lastB.text}</div></div>`:''}
+      <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;"><span class="bdg ${sb}">${c.status}</span>${c.derivTo?`<span class="bdg bp">→ ${c.derivTo}</span>`:''}</div>
+      <div class="tm" style="margin-top:3px;">Rep: ${c.reporter} · Asig: ${c.assignee}</div>
+      ${canAct?`<div style="display:flex;gap:3px;margin-top:7px;flex-wrap:wrap;">
+        <button onclick="openBita('${c.id}')" style="flex:1;min-width:65px;background:var(--bbg);color:var(--blg);border:0.5px solid var(--bbd);border-radius:7px;padding:5px 3px;font-size:9px;cursor:pointer;font-family:var(--fn);">En proceso${c.bita?.length?' ('+c.bita.length+')':''}</button>
+        <button onclick="openRes('${c.id}')" style="flex:1;min-width:65px;background:var(--gbg);color:var(--grn);border:0.5px solid var(--gbd);border-radius:7px;padding:5px 3px;font-size:9px;cursor:pointer;font-family:var(--fn);">Resuelta</button>
+        <button onclick="openDeriv('${c.id}')" style="flex:1;min-width:55px;background:var(--pbg);color:var(--pur);border:0.5px solid var(--pbd);border-radius:7px;padding:5px 3px;font-size:9px;cursor:pointer;font-family:var(--fn);">Derivar</button>
+      </div>`:''}
+    </div>`;
+  });
+  if(resolved.length){
+    html+=`<div class="sh">Resueltas</div>`;
+    resolved.forEach(c=>{
+      html+=`<div class="card dim lg">
+        <div class="tk st">${c.task}</div>
+        <div class="tm">${c.loc} · ${c.date}</div>
+        ${c.rBy?`<div class="tm" style="margin-top:4px;"><span style="color:var(--grn);font-weight:600;">Por:</span> ${c.rBy} · ${c.rWhen}</div>`:''}
+        ${c.rObs?`<div class="tm" style="font-style:italic;">"${c.rObs}"</div>`:''}
+        ${c.rType?`<div style="margin-top:4px;"><span class="bdg ${c.rType==='Definitivo'?'bg2':'by'}">${c.rType}</span></div>`:''}
+      </div>`;
+    });
+  }
+  if(!active.length&&!resolved.length)html='<div style="color:var(--t3);font-size:12px;text-align:center;padding:32px 0;">Sin correctivas en este filtro</div>';
+  document.getElementById('corr-list').innerHTML=html;
+}
+
+function openBita(id){
+  const c=corrs.find(x=>x.id===id);if(!c)return;
+  document.getElementById('bita-id').value=id;
+  document.getElementById('bita-title').textContent='En proceso · '+c.task.slice(0,28)+'…';
+  document.getElementById('bita-new-wrap').style.display='';
+  document.getElementById('bita-fecha-wrap').style.display='';
+  document.getElementById('bita-t').value='';
+  document.getElementById('bita-f').value=c.sched||'';
+  document.getElementById('bita-ex').innerHTML='<div style="font-size:9px;color:var(--t3);margin-bottom:4px;">Ejemplos:</div>'+BITA_EX.map(e=>`<span class="ex" onclick="document.getElementById('bita-t').value='${e}'">${e}</span>`).join('');
+  document.getElementById('bita-entries').innerHTML=(c.bita||[]).map(e=>`<div class="be"><div style="display:flex;justify-content:space-between;"><span class="bwho">${e.who.split(' ')[0]}</span><span class="bw">${e.ts}</span></div><div class="bt3">${e.text}</div></div>`).join('')||'<div style="color:var(--t3);font-size:10px;">Sin avances aún</div>';
+  document.getElementById('bita-ma').innerHTML='<button class="bs bs-g" onclick="closeM(\'mo-bita\')">Cerrar</button><button class="bs bs-a" onclick="saveBita()">Agregar</button>';
+  c.status='EN PROCESO';save();openM('mo-bita');
+}
+function saveBita(){
+  const id=document.getElementById('bita-id').value;if(id==='__view__'){closeM('mo-bita');return;}
+  const text=document.getElementById('bita-t').value.trim();
+  if(!text){showToast('Escribí un avance');return;}
+  const c=corrs.find(x=>x.id===id);if(!c)return;
+  if(!c.bita)c.bita=[];
+  c.bita.push({ts:nf(),who:USERS[CU].name,text});
+  const fecha=document.getElementById('bita-f').value;
+  if(fecha)c.sched=fecha;
+  c.status='EN PROCESO';save();buildCorr();closeM('mo-bita');showToast('Avance registrado ✓');
+}
+
+function openRes(id){
+  document.getElementById('res-id').value=id;
+  document.getElementById('res-wh').value=ns()+' hs';
+  document.getElementById('res-o').value='';
+  document.getElementById('res-t').value='Definitivo';
+  document.getElementById('res-prov').style.display='none';
+  openM('mo-resolve');
+}
+function confirmRes(){
+  const id=document.getElementById('res-id').value;
+  const obs=document.getElementById('res-o').value.trim();
+  if(!obs){showToast('Describí qué se hizo');return;}
+  const c=corrs.find(x=>x.id===id);if(!c)return;
+  Object.assign(c,{status:'RESUELTO',rBy:document.getElementById('res-w').value,rWhen:document.getElementById('res-wh').value,rObs:obs,rType:document.getElementById('res-t').value});
+  save();buildCorr();buildHome();closeM('mo-resolve');
+  showToast(c.rType==='Definitivo'?'Resuelta definitivamente ✓':'Marcada provisoria');
+}
+
+function openDeriv(id){
+  document.getElementById('deriv-id').value=id;
+  document.getElementById('deriv-m').value='';
+  derivTarget=null;
+  const targets=[
+    {k:'david',n:'David Vargas',r:'Compañero – ejecutor'},
+    {k:'andres',n:'Andrés Patiño',r:'Compañero – ejecutor'},
+    {k:'ariel',n:'Ariel Koczak',r:'Jefe Mantenimiento – análisis técnico'},
+    {k:'guillermo',n:'Guillermo',r:'Jefe de Sala'},
+    {k:'carla',n:'Carla Carrieri',r:'Coordinadora'},
+    {k:'mano',n:'Mano S.',r:'Productor'},
+    {k:'jon',n:'Jon (Director)',r:'Director – decisión ejecutiva'},
+    {k:'todos',n:'Escalar a todos',r:'Notifica a toda la cadena'},
+  ];
+  document.getElementById('deriv-targets').innerHTML=targets.map(t=>{
+    const u=USERS[t.k]||{initials:'★',color:'#a290f8',bg:'#a290f820'};
+    return `<div class="dt" data-k="${t.k}" onclick="selDT(this,'${t.k}','${t.n}')"><div class="dav" style="background:${u.bg};color:${u.color};">${u.initials||'★'}</div><div><div class="dn">${t.n}</div><div class="dr">${t.r}</div></div></div>`;
+  }).join('');
+  openM('mo-deriv');
+}
+function selDT(el,k,n){document.querySelectorAll('.dt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');derivTarget={k,n};}
+function confirmDeriv(){
+  const id=document.getElementById('deriv-id').value;
+  const m=document.getElementById('deriv-m').value.trim();
+  if(!derivTarget){showToast('Elegí a quién derivar');return;}
+  if(!m){showToast('Escribí el motivo');return;}
+  const c=corrs.find(x=>x.id===id);if(!c)return;
+  c.status='DERIVADA';c.derivTo=derivTarget.n;c.derivM=m;
+  save();buildCorr();buildNotifs();closeM('mo-deriv');showToast(`Derivado a ${derivTarget.n}`);
+}
+
+function addCorr(){
+  const desc=document.getElementById('nc-d').value.trim();if(!desc)return;
+  const urg=document.querySelector('#nc-urg .uo.su')?.querySelector('.un2')?.textContent?.toUpperCase()||'NECESARIA';
+  corrs.unshift({id:'c'+Date.now(),task:desc,loc:document.getElementById('nc-l').value,urg,reporter:USERS[CU].name,assignee:document.getElementById('nc-a').value,status:'PENDIENTE',date:nf(),obs:'',bita:[],rBy:'',rWhen:'',rObs:'',rType:'',derivTo:'',derivM:'',sched:''});
+  save();buildCorr();buildHome();closeM('mo-newcorr');
+  document.getElementById('nc-d').value='';showToast('Correctiva registrada');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// TEMPERATURA
+// ════════════════════════════════════════════════════════════════════════════
+function tcol(v){if(v>=28)return '#ff5566';if(v>=24)return '#ff9830';if(v>=20)return '#28d464';if(v>=16)return '#74b0ff';return '#a290f8';}
+function buildTemp(){checkTempAlerts();rTS(1);rTS(2);buildTH();}
+function rTS(n){
+  const key=`s${n}_${dk()}`;
+  const entries=(temps[key]||[]).slice().sort((a,b)=>a.sk-b.sk);
+  const last=entries[entries.length-1];
+  const val=last?last.val:'--';
+  const el=document.getElementById(`t${n}big`);
+  el.textContent=val;el.style.color=last?tcol(parseFloat(val)):'var(--acc)';
+  const log=document.getElementById(`tlog${n}`);
+  log.innerHTML=entries.length?entries.slice().reverse().map(e=>`<div class="te"><span class="tt">${e.time}</span><span class="tv" style="color:${tcol(parseFloat(e.val))};">${e.val}°C</span><span class="tc">${e.ctx}</span><span class="tw">${e.by.split(' ')[0]}</span></div>`).join(''):'<div style="font-size:10px;color:var(--t3);padding:5px 0;">Sin registros. Registrá el primero.</div>';
+}
+function checkTempAlerts(){
+  const now=new Date();const nowM=now.getHours()*60+now.getMinutes();
+  [1,2].forEach(n=>{
+    const el=document.getElementById(`talert${n}`);if(!el)return;
+    const key=`s${n}_${dk()}`;const entries=temps[key]||[];
+    if(!entries.length){el.innerHTML=`<div class="tal">⏰ Sin registros de temperatura en Sala ${n} hoy</div>`;return;}
+    const last=entries[entries.length-1];
+    if(nowM-last.sk>120){el.innerHTML=`<div class="tal">⏰ Sala ${n}: último registro ${last.time} – ¡más de 2 hs!</div>`;}
+    else{el.innerHTML='';}
+  });
+}
+function buildTH(){
+  const keys=Object.keys(temps).filter(k=>k.startsWith('s1_')).map(k=>k.replace('s1_','')).sort().reverse().slice(0,7);
+  const nav=document.getElementById('this-nav');
+  if(!keys.length){nav.innerHTML='';document.getElementById('this-view').innerHTML='<div style="color:var(--t3);font-size:11px;">Sin historial</div>';return;}
+  nav.innerHTML=keys.slice(0,5).map((d,i)=>{
+    const parts=d.split('-');const label=`${parts[2]}/${parseInt(parts[1])+1}`;
+    return `<button onclick="showTDay('${d}')" style="font-size:9px;padding:3px 8px;border-radius:20px;border:0.5px solid var(--b2);background:${i===0?'var(--s3)':'var(--s1)'};color:${i===0?'var(--t1)':'var(--t2)'};cursor:pointer;font-family:var(--fn);">${label}</button>`;
+  }).join('');
+  showTDay(keys[0]);
+}
+function showTDay(d){
+  let html='';
+  [1,2].forEach(n=>{
+    const entries=(temps[`s${n}_${d}`]||[]).slice().sort((a,b)=>a.sk-b.sk);
+    if(!entries.length)return;
+    html+=`<div class="sh">Sala ${n}</div><div class="card">${entries.map(e=>`<div class="te"><span class="tt">${e.time}</span><span class="tv" style="color:${tcol(parseFloat(e.val))};">${e.val}°C</span><span class="tc">${e.ctx}</span><span class="tw">${e.by.split(' ')[0]}</span></div>`).join('')}</div>`;
+  });
+  document.getElementById('this-view').innerHTML=html||'<div style="color:var(--t3);font-size:11px;">Sin datos</div>';
+}
+let curTS=1;
+function openTM(n){curTS=n;document.getElementById('mo-temp-t').textContent=`Temperatura Sala ${n}`;document.getElementById('tval').value='';openM('mo-temp');}
+function saveTemp(){
+  const val=document.getElementById('tval').value;if(!val)return;
+  const ctx=document.getElementById('tctx').value;
+  const now=new Date();const time=ns();const sk=now.getHours()*60+now.getMinutes();
+  const key=`s${curTS}_${dk()}`;
+  if(!temps[key])temps[key]=[];
+  temps[key].push({val:parseFloat(val),ctx,time,sk,by:USERS[CU].name});
+  save();buildTemp();closeM('mo-temp');showToast(`Sala ${curTS}: ${val}°C ✓`);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// COMPRAS
+// ════════════════════════════════════════════════════════════════════════════
+function buildCompras(){
+  document.getElementById('compras-tog').innerHTML=[{v:'pendientes',l:'Pendientes'},{v:'realizadas',l:'Realizadas'},{v:'todo',l:'Todo'}]
+    .map(x=>`<button class="to ${x.v===comprasView?'st':''}" onclick="sCV('${x.v}',this)">${x.l}</button>`).join('');
+  rCompras();
+}
+function sCV(v,btn){comprasView=v;document.querySelectorAll('#compras-tog .to').forEach(b=>b.classList.remove('st'));btn.classList.add('st');rCompras();}
+function rCompras(){
+  let list=[...compras];
+  if(comprasView==='pendientes')list=list.filter(c=>!c.realizada);
+  else if(comprasView==='realizadas')list=list.filter(c=>c.realizada);
+  document.getElementById('compras-list').innerHTML=list.length?list.map(c=>{
+    const es=c.tipo==='extra';
+    return `<div class="cc2" onclick="openCD('${c.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span class="ct" style="color:${es?'var(--ora)':'var(--grn)'};">${es?'Extraordinaria':'Regular'}</span>
+        <span class="bdg ${c.realizada?'bg2':c.estado==='Pendiente aprobación'?'by':c.estado==='Aprobada'?'bt2':'bgr'}">${c.estado}</span>
+      </div>
+      <div class="cn">${c.desc}</div>
+      <div class="cm">${c.prov}${c.monto?' · '+c.monto:''} · ${c.fecha}</div>
+      ${c.aprobadaPor?`<div class="cm" style="color:var(--grn);">Aprobada por: ${c.aprobadaPor}</div>`:''}
+    </div>`;
+  }).join(''):'<div style="color:var(--t3);font-size:12px;text-align:center;padding:28px 0;">Sin compras</div>';
+}
+function openCD(id){
+  const c=compras.find(x=>x.id===id);if(!c)return;
+  const canAprob=['semiadmin','admin'].includes(USERS[CU]?.role);
+  document.getElementById('cd-title').textContent=c.desc;
+  document.getElementById('cd-body').innerHTML=`
+    <div class="tm"><strong style="color:var(--t1);">Tipo:</strong> ${c.tipo==='extra'?'Extraordinaria':'Regular mensual'}</div>
+    <div class="tm"><strong style="color:var(--t1);">Proveedor:</strong> ${c.prov}</div>
+    <div class="tm"><strong style="color:var(--t1);">Monto:</strong> ${c.monto||'No especificado'}</div>
+    <div class="tm"><strong style="color:var(--t1);">Fecha:</strong> ${c.fecha}</div>
+    <div class="tm"><strong style="color:var(--t1);">Estado:</strong> <span class="bdg ${c.realizada?'bg2':'by'}">${c.estado}</span></div>
+    ${c.aprov?.length?`<div class="tm"><strong style="color:var(--t1);">Aprobación:</strong> ${c.aprov.join(', ')}</div>`:''}
+    ${c.aprobadaPor?`<div class="tm" style="color:var(--grn);"><strong>Aprobada por:</strong> ${c.aprobadaPor}</div>`:''}
+    ${c.foto?`<img src="${c.foto}" style="width:100%;border-radius:8px;margin-top:7px;max-height:180px;object-fit:cover;"/>`:
+    '<div style="background:var(--s2);border-radius:7px;padding:8px;text-align:center;font-size:10px;color:var(--t3);margin-top:5px;">Sin factura adjunta</div>'}`;
+  let acts='<button class="bs bs-g" onclick="closeM(\'mo-compradet\')" style="flex:1;">Cerrar</button>';
+  if(canAprob&&!c.realizada&&c.estado==='Pendiente aprobación'){
+    acts+=`<button class="bs bs-gr" onclick="aprobC('${c.id}')">Aprobar</button><button class="bs bs-r" onclick="rechC('${c.id}')">Rechazar</button>`;
+  }
+  if(canAprob&&c.aprobadaPor&&!c.realizada){acts+=`<button class="bs bs-a" onclick="markReal('${c.id}')">Marcar realizada</button>`;}
+  document.getElementById('cd-actions').innerHTML=acts;
+  openM('mo-compradet');
+}
+function aprobC(id){const c=compras.find(x=>x.id===id);if(c){c.estado='Aprobada';c.aprobadaPor=USERS[CU].name;save();rCompras();openCD(id);showToast('Aprobada ✓');}}
+function rechC(id){const c=compras.find(x=>x.id===id);if(c){c.estado='Rechazada';save();rCompras();closeM('mo-compradet');showToast('Rechazada');}}
+function markReal(id){const c=compras.find(x=>x.id===id);if(c){c.realizada=true;c.estado='Realizada';save();rCompras();closeM('mo-compradet');showToast('Marcada realizada');}}
+function prevFoto(input,prevId){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{const img=document.getElementById(prevId);img.src=e.target.result;img.classList.add('on');};r.readAsDataURL(f);}
+function addCompra(){
+  const desc=document.getElementById('cp-d').value.trim();if(!desc)return;
+  const tipo=document.getElementById('cp-t').value;
+  const aprov=tipo==='extra'?[...document.querySelectorAll('#cp-apchips .ch.sc')].map(c=>c.dataset.p):[];
+  const foto=document.getElementById('cp-fp').src||null;
+  const realizada=document.getElementById('cp-r').value==='si';
+  compras.unshift({id:'cp'+Date.now(),tipo,desc,prov:document.getElementById('cp-p').value||'Sin especificar',monto:document.getElementById('cp-m').value||'',aprov,realizada,fecha:nf().split(' ')[0],foto:foto&&foto.startsWith('data:')?foto:null,estado:realizada?'Realizada':tipo==='extra'?'Pendiente aprobación':'Pendiente',aprobadaPor:''});
+  save();buildCompras();closeM('mo-newcompra');
+  ['cp-d','cp-p','cp-m'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cp-fp').classList.remove('on');showToast('Pedido registrado');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// FIRMA DE TURNO
+// ════════════════════════════════════════════════════════════════════════════
+function selEstado(btn){
+  document.querySelectorAll('.estado-btn').forEach(b=>{b.style.borderColor='var(--b2)';b.style.background='var(--s1)';b.style.color='var(--t2)';});
+  turnoEstado=btn.dataset.v;
+  const cols={bien:['var(--gbd)','var(--gbg)','var(--grn)'],regular:['var(--ybd)','var(--ybg)','var(--yel)'],mal:['var(--rbd)','var(--rbg)','var(--red)']};
+  const [bord,bg,col]=cols[turnoEstado];
+  btn.style.borderColor=bord;btn.style.background=bg;btn.style.color=col;
+}
+function firmarTurno(){
+  const hecho=document.getElementById('t-hecho').value.trim();
+  if(!hecho){showToast('Describí lo que hiciste hoy');return;}
+  const t={id:'t'+Date.now(),who:CU,name:USERS[CU].name,color:USERS[CU].color,bg:USERS[CU].bg,initials:USERS[CU].initials,ts:nf(),hecho,pend:document.getElementById('t-pend').value.trim(),urg:document.getElementById('t-urg').value.trim(),notas:document.getElementById('t-notas').value.trim(),estado:turnoEstado};
+  turnos.unshift(t);save();buildTurno();closeM('mo-turno');
+  ['t-hecho','t-pend','t-urg','t-notas'].forEach(id=>document.getElementById(id).value='');
+  showToast('Turno firmado ✓');
+}
+function buildTurno(){
+  const canSign=isExec()||isAdmin();
+  document.getElementById('turno-form-wrap').innerHTML=canSign?`
+    <div style="background:var(--s2);border:0.5px solid var(--b2);border-radius:11px;padding:10px 11px;margin-bottom:10px;cursor:pointer;" onclick="openM('mo-turno')">
+      <div style="font-size:12px;font-weight:500;color:var(--t1);">✎ Firmar turno de hoy</div>
+      <div style="font-size:10px;color:var(--t3);margin-top:2px;">Resumen de lo que hiciste, pendientes y urgencias para mañana</div>
+    </div>`:'';
+  document.getElementById('turno-list').innerHTML=turnos.slice(0,10).map(t=>{
+    const estadoCols={bien:'var(--grn)',regular:'var(--yel)',mal:'var(--red)'};
+    const estadoLabel={bien:'Bien',regular:'Regular',mal:'Con problemas'};
+    return `<div class="firma-card">
+      <div class="firma-head">
+        <div class="firma-av" style="background:${t.bg};color:${t.color};">${t.initials}</div>
+        <div><div class="firma-who">${t.name}</div><div class="firma-when">${t.ts}</div></div>
+        <div style="margin-left:auto;"><span class="bdg" style="background:${estadoCols[t.estado]||'var(--grn)'}20;color:${estadoCols[t.estado]||'var(--grn)'};">${estadoLabel[t.estado]||'Bien'}</span></div>
+      </div>
+      ${t.hecho?`<div class="firma-section"><div class="firma-label">Lo que se hizo</div><div class="firma-text">${t.hecho}</div></div>`:''}
+      ${t.pend?`<div class="firma-section"><div class="firma-label">Pendiente</div><div class="firma-text" style="color:var(--ora);">${t.pend}</div></div>`:''}
+      ${t.urg?`<div class="firma-urgente">⚠ Urgente para mañana: ${t.urg}</div>`:''}
+      ${t.notas?`<div class="firma-section" style="margin-top:6px;"><div class="firma-label">Notas / Visitas / Observaciones</div><div class="firma-text">${t.notas}</div></div>`:''}
+    </div>`;
+  }).join('')||'<div style="color:var(--t3);font-size:11px;">Sin firmas aún</div>';
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// OBSERVACIONES
+// ════════════════════════════════════════════════════════════════════════════
+function addObs(){
+  const text=document.getElementById('obs-t').value.trim();if(!text)return;
+  const cat=document.getElementById('obs-cat').value;
+  const seg=document.getElementById('obs-seg').value==='si';
+  obsArr.unshift({id:'o'+Date.now(),who:CU,name:USERS[CU].name,color:USERS[CU].color,initials:USERS[CU].initials,ts:nf(),cat,text,seg});
+  save();buildObs();closeM('mo-obs');document.getElementById('obs-t').value='';showToast('Nota guardada');
+}
+function buildObs(){
+  const canAdd=true;
+  document.getElementById('obs-new-wrap').innerHTML=canAdd?`<div style="background:var(--s2);border:0.5px solid var(--b2);border-radius:10px;padding:9px 11px;margin-bottom:9px;cursor:pointer;" onclick="openM('mo-obs')"><div style="font-size:12px;font-weight:500;color:var(--t1);">+ Nueva observación / nota</div><div style="font-size:10px;color:var(--t3);margin-top:1px;">Proveedores, requerimientos, avisos, seguimientos...</div></div>`:'';
+  const catCols={General:'bgr','Proveedor / Visita técnica':'bt2','Requerimiento de compra':'bo','Seguimiento / Reparación pendiente':'br','Aviso a equipo':'bb2','Comentario de producción':'bp','Actores / Elenco':'bp','Público / Incidente':'br'};
+  document.getElementById('obs-list').innerHTML=obsArr.slice(0,20).map(o=>`
+    <div class="obs-entry">
+      <div class="obs-head">
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:${o.color}20;color:${o.color};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;">${o.initials}</div>
+          <span class="obs-who">${o.name.split(' ')[0]}</span>
+          ${o.seg?'<span class="bdg br" style="font-size:8px;">Seguimiento</span>':''}
+        </div>
+        <span class="obs-time">${o.ts}</span>
+      </div>
+      <span class="bdg ${catCols[o.cat]||'bgr'}" style="margin-bottom:4px;">${o.cat}</span>
+      <div class="obs-text" style="margin-top:4px;">${o.text}</div>
+    </div>`).join('')||'<div style="color:var(--t3);font-size:11px;">Sin notas aún</div>';
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// SEMÁFORO
+// ════════════════════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════════════════════
+// VISTA DE TAREAS POR PERSONA (desde semáforo)
+// ════════════════════════════════════════════════════════════════════════════
+function showPersonTasks(personKey){
+  const u=USERS[personKey];
+  const t=dk();
+  const myTasks=prevs.filter(p=>(p.resp===personKey||p.resp==='ambos'));
+  const done=myTasks.filter(p=>checks[t+p.id]);
+  const pending=myTasks.filter(p=>!checks[t+p.id]);
+  const extras=JSON.parse(localStorage.getItem('m4-extras')||'[]').filter(e=>e.who===personKey&&e.dia===t);
+
+  document.getElementById('bita-title').textContent=u.name+' · Tareas del día';
+  document.getElementById('bita-id').value='__person_view__';
+  document.getElementById('bita-ex').innerHTML='';
+  document.getElementById('bita-new-wrap').style.display='none';
+  document.getElementById('bita-fecha-wrap').style.display='none';
+  document.getElementById('bita-ma').innerHTML='<button class="bs bs-g" onclick="closeM(\'mo-bita\')" style="flex:1;">Cerrar</button>';
+
+  let html='';
+  if(pending.length){
+    html+='<div style="font-size:9px;color:var(--ora);font-weight:600;text-transform:uppercase;margin-bottom:5px;">Pendientes ('+pending.length+')</div>';
+    html+=pending.map(p=>`<div class="be" style="border-left:2px solid var(--ora);padding-left:8px;"><div class="bt3">${p.task}</div><div class="bw">${p.period} · ${p.sector}</div></div>`).join('');
+  }
+  if(done.length){
+    html+='<div style="font-size:9px;color:var(--grn);font-weight:600;text-transform:uppercase;margin:8px 0 5px;">Completadas ('+done.length+')</div>';
+    html+=done.map(p=>`<div class="be" style="border-left:2px solid var(--grn);padding-left:8px;opacity:0.7;"><div class="bt3 st">${p.task}</div><div class="bw">${p.period} · ${p.sector}</div></div>`).join('');
+  }
+  if(extras.length){
+    html+='<div style="font-size:9px;color:var(--ac2);font-weight:600;text-transform:uppercase;margin:8px 0 5px;">Extras no planificadas ('+extras.length+')</div>';
+    html+=extras.map(e=>`<div class="be" style="border-left:2px solid var(--acc);padding-left:8px;"><div class="bt3">${e.desc}</div><div class="bw">${e.cat} · ${e.tiempo} · ${e.ts}</div></div>`).join('');
+  }
+  if(!html)html='<div style="color:var(--t3);font-size:11px;">Sin tareas registradas hoy</div>';
+  document.getElementById('bita-entries').innerHTML=html;
+  openM('mo-bita');
+}
+
+function getSemaforoData(){
+  const t=dk();
+  const res={};
+  ['david','andres'].forEach(k=>{
+    const myT=prevs.filter(p=>(p.resp===k||p.resp==='ambos')&&p.period==='Diaria');
+    const done=myT.filter(p=>checks[t+p.id]).length;
+    const pct=myT.length?Math.round(done/myT.length*100):0;
+    res[k]={done,total:myT.length,pct};
+  });
+  return res;
+}
+function buildSemaforo(){
+  const smData=getSemaforoData();
+  const weekCorr=corrs.filter(c=>c.status==='RESUELTO').length;
+  const weekPend=corrs.filter(c=>c.status==='PENDIENTE').length;
+  const weekDeriv=corrs.filter(c=>c.status==='DERIVADA').length;
+  let html=`
+    <div class="sh">Cobertura de tareas hoy</div>
+    <div class="smf">
+      ${['david','andres'].map(k=>{
+        const u=USERS[k];const d=smData[k];
+        const col=d.pct>=80?'var(--grn)':d.pct>=50?'var(--yel)':'var(--red)';
+        return `<div class="smf-row" style="cursor:pointer;" onclick="showPersonTasks('${k}')">
+          <div class="smf-dot" style="background:${col};"></div>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="smf-name">${u.name}</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="smf-pct" style="color:${col};">${d.pct}%</span>
+                <span style="font-size:9px;color:var(--acc);">ver tareas →</span>
+              </div>
+            </div>
+            <div class="smf-bg"><div class="smf-bar" style="width:${d.pct}%;background:${col};"></div></div>
+            <div style="font-size:9px;color:var(--t3);margin-top:2px;">${d.done} hechas · ${d.total-d.done} pendientes · tap para ver detalle</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="sh">Correctivas esta semana</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <div class="week-box" onclick="goCorrFilter('RESUELTO')"><div class="week-n" style="color:var(--grn);">${weekCorr}</div><div class="week-l">Resueltas →</div></div>
+      <div class="week-box" onclick="goCorrFilter('PENDIENTE')" style="${weekPend>0?'border-color:var(--obd);':''}"><div class="week-n" style="color:${weekPend>0?'var(--ora)':'var(--t1)'}">${weekPend}</div><div class="week-l">Pendientes →</div></div>
+      <div class="week-box" onclick="goCorrFilter('DERIVADA')" style="${weekDeriv>0?'border-color:var(--pbd);':''}"><div class="week-n" style="color:${weekDeriv>0?'var(--pur)':'var(--t1)'}">${weekDeriv}</div><div class="week-l">Derivadas →</div></div>
+    </div>
+    <div class="sh">Temperatura promedio hoy</div>`;
+
+  [1,2].forEach(n=>{
+    const key=`s${n}_${dk()}`;const entries=temps[key]||[];
+    if(!entries.length){html+=`<div class="card"><div class="tm">Sala ${n}: sin registros</div></div>`;return;}
+    const avg=Math.round(entries.reduce((a,e)=>a+e.val,0)/entries.length*10)/10;
+    const col=tcol(avg);
+    html+=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;"><span class="tm">Sala ${n}</span><span style="font-size:18px;font-weight:600;font-family:var(--mo);color:${col};">${avg}°C</span></div><div class="tm">${entries.length} registros · ${entries[0].time} → ${entries[entries.length-1].time}</div></div>`;
+  });
+
+  html+=`<div class="sh">Ausencias</div>`;
+  const aus=ausencias[dk()];
+  html+=aus?`<div class="card lu"><div class="tk">Ausencia hoy: ${aus.who==='ambos'?'David y Andrés':aus.who==='david'?'David Vargas':'Andrés Patiño'}</div><div class="tm">${aus.motivo}${aus.obs?' · '+aus.obs:''}</div></div>`:'<div style="color:var(--t3);font-size:11px;padding:4px 0;">Sin ausencias registradas hoy</div>';
+
+  if(isExec()||isAdmin()){
+    html+=`<div class="sh" style="margin-top:12px;"></div><div style="background:var(--s2);border-radius:9px;padding:8px 10px;cursor:pointer;text-align:center;font-size:11px;color:var(--acc);" onclick="openM('mo-ausencia')">+ Registrar ausencia</div>`;
+  }
+
+  document.getElementById('semaforo-content').innerHTML=html;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DASHBOARD (semi-admin + admin)
+// ════════════════════════════════════════════════════════════════════════════
+function buildDash(){
+  if(!document.getElementById('dash-content'))return;
+  const t=dk();
+  const smData=getSemaforoData();
+  const recentTurnos=turnos.slice(0,5);
+  const recentObs=obsArr.filter(o=>o.seg).slice(0,5);
+  let html=`
+    <div class="sh">Actividad de hoy</div>
+    <div class="dash-card">
+      <div class="dash-title">Cobertura de tareas</div>
+      ${['david','andres'].map(k=>{
+        const u=USERS[k];const d=smData[k];
+        const col=d.pct>=80?'var(--grn)':d.pct>=50?'var(--yel)':'var(--red)';
+        return `<div class="dash-row">
+          <div class="dash-av" style="background:${u.bg};color:${u.color};">${u.initials}</div>
+          <span class="dash-name">${u.name.split(' ')[0]}</span>
+          <div class="dash-bar-bg"><div class="dash-bar" style="width:${d.pct}%;background:${col};"></div></div>
+          <span class="dash-val" style="color:${col};">${d.pct}%</span>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="sh">Estado de correctivas</div>
+    <div class="dash-card">
+      ${['PENDIENTE','EN PROCESO','RESUELTO','DERIVADA'].map(s=>{
+        const cnt=corrs.filter(c=>c.status===s).length;
+        const col={PENDIENTE:'var(--ora)','EN PROCESO':'var(--blg)',RESUELTO:'var(--grn)',DERIVADA:'var(--pur)'}[s];
+        return `<div class="dash-row"><span class="dash-name" style="font-size:10px;">${s}</span><span class="dash-val" style="color:${col};">${cnt}</span></div>`;
+      }).join('')}
+    </div>
+    <div class="sh">Temperaturas registradas hoy</div>
+    <div class="dash-card">
+      ${[1,2].map(n=>{const e=temps[`s${n}_${t}`]||[];return `<div class="dash-row"><span class="dash-name">Sala ${n}</span><span class="dash-val" style="color:var(--acc);">${e.length} registros</span></div>`;}).join('')}
+    </div>
+    <div class="sh">Últimas firmas de turno</div>
+    ${recentTurnos.length?recentTurnos.map(t=>`<div class="card"><div style="display:flex;align-items:center;gap:6px;"><div class="dash-av" style="background:${t.bg};color:${t.color};">${t.initials}</div><div style="flex:1;"><div style="font-size:11px;font-weight:500;color:var(--t1);">${t.name.split(' ')[0]} · ${t.ts}</div><div style="font-size:10px;color:var(--t2);margin-top:1px;">${t.hecho?.slice(0,60)}${t.hecho?.length>60?'…':''}</div></div><span class="bdg ${t.estado==='bien'?'bg2':t.estado==='regular'?'by':'br'}">${t.estado}</span></div></div>`).join(''):'<div style="color:var(--t3);font-size:11px;">Sin firmas</div>'}
+    <div class="sh">Observaciones con seguimiento</div>
+    ${recentObs.length?recentObs.map(o=>`<div class="obs-entry"><div class="obs-head"><span class="obs-who">${o.name.split(' ')[0]}</span><span class="obs-time">${o.ts}</span></div><span class="bdg br" style="font-size:8px;margin-bottom:3px;">Seguimiento</span><div class="obs-text">${o.text.slice(0,80)}…</div></div>`).join(''):'<div style="color:var(--t3);font-size:11px;">Sin observaciones pendientes</div>'}
+    <div class="sh">Compras pendientes de aprobación</div>
+    ${compras.filter(c=>c.estado==='Pendiente aprobación').map(c=>`<div class="card lp" onclick="openCD('${c.id}');goSc('compras',document.querySelectorAll('.nb')[4]);"><div class="tk">${c.desc}</div><div class="tm">${c.prov} · ${c.monto}</div><div style="margin-top:4px;"><span class="bdg by">Pendiente aprobación</span></div></div>`).join('')||'<div style="color:var(--t3);font-size:11px;">Sin pendientes</div>'}
+  `;
+  document.getElementById('dash-content').innerHTML=html;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// NOTIFS
+// ════════════════════════════════════════════════════════════════════════════
+function buildNotifs(){
+  document.getElementById('notif-list').innerHTML=SAMPLE_NOTIFS.map(n=>`<div class="notif-i" style="display:flex;gap:8px;padding:9px 0;border-bottom:0.5px solid var(--b1);"><div style="width:32px;height:32px;border-radius:50%;background:${n.color}20;color:${n.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;">${n.initials}</div><div style="flex:1;"><div style="font-size:11px;font-weight:500;color:var(--t1);">${n.from}</div><div style="font-size:11px;color:var(--t2);margin-top:2px;line-height:1.4;">${n.msg}</div><div style="font-size:9px;color:var(--t3);margin-top:2px;">${n.when}</div></div>${n.unread?'<div style="width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:3px;"></div>':''}</div>`).join('');
+  const der=corrs.filter(c=>c.status==='DERIVADA');
+  document.getElementById('deriv-list').innerHTML=der.length?der.map(c=>`<div class="card lv"><div class="tk">${c.task}</div><div class="tm">${c.loc} · → <strong style="color:var(--pur);">${c.derivTo}</strong></div><div class="tm" style="font-style:italic;margin-top:2px;">"${c.derivM}"</div></div>`).join(''):'<div style="color:var(--t3);font-size:11px;padding:5px 0;">Sin derivados pendientes</div>';
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// ADMIN
+// ════════════════════════════════════════════════════════════════════════════
+function tryAdmin(){
+  const role=USERS[CU]?.role;
+  if(role==='admin'){openAdminFull();}
+  else if(role==='semiadmin'){openAdminView();}
+}
+function openAdminFull(){
+  document.getElementById('admin-title').textContent='Administración · Jon';
+  document.getElementById('admin-body').innerHTML=`
+    <div class="sh">Usuarios y PINs</div>
+    ${Object.entries(USERS).map(([k,u])=>`<div class="aur"><div class="dash-av" style="background:${u.bg};color:${u.color};">${u.initials}</div><div class="aui"><div class="aun">${u.name}</div><div class="aurl">${u.roleLabel} · PIN: ${u.pin}</div></div><button onclick="editUser('${k}')" style="background:var(--bbg);color:var(--blg);border:none;border-radius:6px;padding:3px 7px;font-size:9px;cursor:pointer;font-family:var(--fn);">Editar</button></div>`).join('')}
+    <div class="sep"></div>
+    <div class="sh">Tareas preventivas</div>
+    <div id="adm-task-list" style="max-height:200px;overflow-y:auto;margin-bottom:7px;"></div>
+    <button onclick="openM('mo-edittask');document.getElementById('et-id').value='';document.getElementById('et-title').textContent='Nueva tarea';" style="width:100%;background:var(--gbg);color:var(--grn);border:0.5px solid var(--gbd);border-radius:8px;padding:7px;font-size:11px;cursor:pointer;font-family:var(--fn);margin-bottom:7px;">+ Nueva tarea preventiva</button>
+    <div class="sep"></div>
+    <button onclick="regAusWrapper()" style="width:100%;background:var(--obg);color:var(--ora);border:0.5px solid var(--obd);border-radius:8px;padding:7px;font-size:11px;cursor:pointer;font-family:var(--fn);margin-bottom:7px;">Registrar ausencia</button>
+    <button onclick="resetAll()" style="width:100%;background:var(--rbg);color:var(--red);border:0.5px solid var(--rbd);border-radius:8px;padding:7px;font-size:11px;cursor:pointer;font-family:var(--fn);margin-bottom:7px;">Resetear checks del día</button>
+    <button class="bs bs-g" onclick="closeM('mo-admin')" style="width:100%;">Cerrar</button>`;
+  buildAdmTaskList();
+  openM('mo-admin');
+}
+function openAdminView(){
+  document.getElementById('admin-title').textContent='Vista admin · '+USERS[CU]?.name.split(' ')[0];
+  document.getElementById('admin-body').innerHTML=`
+    <div style="font-size:11px;color:var(--t2);margin-bottom:10px;">Podés ver toda la actividad del teatro pero no modificar la estructura.</div>
+    <button onclick="goSc('dash',document.getElementById('nb-dash'));closeM('mo-admin');" style="width:100%;background:var(--bbg);color:var(--blg);border:0.5px solid var(--bbd);border-radius:8px;padding:9px;font-size:11px;cursor:pointer;font-family:var(--fn);margin-bottom:7px;">Ver dashboard completo</button>
+    <button onclick="goSc('semaforo',document.querySelectorAll('.nb')[7]);closeM('mo-admin');" style="width:100%;background:var(--gbg);color:var(--grn);border:0.5px solid var(--gbd);border-radius:8px;padding:9px;font-size:11px;cursor:pointer;font-family:var(--fn);margin-bottom:7px;">Ver semáforo semanal</button>
+    <button class="bs bs-g" onclick="closeM('mo-admin')" style="width:100%;margin-top:4px;">Cerrar</button>`;
+  openM('mo-admin');
+}
+function buildAdmTaskList(){
+  const el=document.getElementById('adm-task-list');if(!el)return;
+  el.innerHTML=prevs.map(p=>{
+    const hasProx=p.proxima;
+    const isOverdue=hasProx&&new Date(p.proxima)<new Date();
+    return `<div style="padding:7px 0;border-bottom:0.5px solid var(--b1);">
+      <div style="display:flex;align-items:flex-start;gap:6px;">
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:500;color:var(--t1);">${p.task}</div>
+          <div style="font-size:9px;color:var(--t3);margin-top:1px;">${p.period} · ${p.resp==='ambos'?'Ambos':p.resp==='david'?'David':'Andrés'} · ${p.sector||''}</div>
+          ${hasProx?`<div style="font-size:9px;color:${isOverdue?'var(--red)':'var(--yel)'};margin-top:2px;">${isOverdue?'⚠ VENCIDA':'📅 Próxima'}: ${p.proxima}</div>`:''}
+          ${p.notas?`<div style="font-size:9px;color:var(--t2);margin-top:1px;font-style:italic;">${p.notas.slice(0,50)}${p.notas.length>50?'…':''}</div>`:''}
+        </div>
+        <button onclick="editTask('${p.id}')" style="background:var(--bbg);color:var(--blg);border:none;border-radius:5px;padding:3px 6px;font-size:9px;cursor:pointer;font-family:var(--fn);">✎</button>
+        <button onclick="delTask('${p.id}')" style="background:var(--rbg);color:var(--red);border:none;border-radius:5px;padding:3px 6px;font-size:9px;cursor:pointer;font-family:var(--fn);">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function editUser(k){
+  const u=USERS[k];
+  document.getElementById('eu-key').value=k;
+  document.getElementById('eu-name').value=u.name;
+  document.getElementById('eu-pin').value=u.pin;
+  document.getElementById('eu-role').value=u.roleLabel;
+  openM('mo-edituser');
+}
+function saveUser(){
+  const k=document.getElementById('eu-key').value;
+  const name=document.getElementById('eu-name').value.trim();
+  const pin=document.getElementById('eu-pin').value.trim();
+  if(!name||pin.length!==4){showToast('Nombre y PIN de 4 dígitos requeridos');return;}
+  USERS[k].name=name;USERS[k].pin=pin;USERS[k].roleLabel=document.getElementById('eu-role').value;
+  const parts=name.split(' ');USERS[k].initials=(parts[0][0]+(parts[1]?parts[1][0]:'')).toUpperCase();
+  save();closeM('mo-edituser');openAdminFull();showToast('Usuario actualizado');
+}
+function toggleEtFecha(){
+  const v=document.getElementById('et-period').value;
+  document.getElementById('et-fecha-wrap').style.display=v==='fecha-especifica'?'block':'none';
+}
+function editTask(id){
+  const p=prevs.find(x=>x.id===id);if(!p)return;
+  document.getElementById('et-title').textContent='Editar tarea';
+  document.getElementById('et-id').value=id;
+  document.getElementById('et-task').value=p.task;
+  document.getElementById('et-sector').value=p.sector||'';
+  document.getElementById('et-resp').value=p.resp;
+  document.getElementById('et-period').value=p.period;
+  document.getElementById('et-rep').value=p.reporta||'Ariel Koczak';
+  document.getElementById('et-notas').value=p.notas||'';
+  document.getElementById('et-proxima').value=p.proxima||'';
+  // Show calculated next date as placeholder hint
+  const calcHint=calcProxima(p.period,'');
+  const proximaInput=document.getElementById('et-proxima');
+  proximaInput.placeholder=calcHint?`Auto: ${calcHint} (según periodicidad)`:'';
+  document.getElementById('et-fecha').value=p.fechaEsp||'';
+  toggleEtFecha();
+  openM('mo-edittask');
+}
+function calcProxima(period, manualDate){
+  // Manual date always wins over period
+  if(manualDate) return manualDate;
+  const d=new Date();
+  const periodDays={
+    'Diaria':1,'Semanal':7,'Quincenal':15,'Mensual':30,
+    'Bimensual':60,'Trimestral':90,'Cuatrimestral':120,
+    'Semestral':180,'Anual':365
+  };
+  const days=periodDays[period];
+  if(!days) return '';
+  d.setDate(d.getDate()+days);
+  return d.toISOString().split('T')[0];
+}
+function saveTask(){
+  const id=document.getElementById('et-id').value;
+  const task=document.getElementById('et-task').value.trim();if(!task)return;
+  const period=document.getElementById('et-period').value;
+  const manualProxima=document.getElementById('et-proxima').value;
+  // Manual date wins; if not set, auto-calculate from period
+  const proxima=calcProxima(period, manualProxima);
+  const data={
+    task,
+    sector:document.getElementById('et-sector').value,
+    resp:document.getElementById('et-resp').value,
+    period,
+    reporta:document.getElementById('et-rep').value,
+    notas:document.getElementById('et-notas').value,
+    proxima,
+    proximaManual:!!manualProxima, // flag: was it manually set?
+    fechaEsp:period==='fecha-especifica'?document.getElementById('et-fecha').value:'',
+  };
+  if(id){const p=prevs.find(x=>x.id===id);if(p)Object.assign(p,data);}
+  else{prevs.push({id:'pt'+Date.now(),...data});}
+  save();buildAdmTaskList();rPrevList();closeM('mo-edittask');
+  const proximaLabel=proxima?` · Próxima: ${proxima}`:'';
+  showToast(id?`Tarea actualizada ✓${proximaLabel}`:`Tarea agregada ✓${proximaLabel}`);
+}
+function delTask(id){if(confirm('¿Eliminar?')){prevs=prevs.filter(x=>x.id!==id);save();buildAdmTaskList();rPrevList();showToast('Eliminada');}}
+function regAusWrapper(){closeM('mo-admin');setTimeout(()=>openM('mo-ausencia'),200);}
+function regAusencia(){
+  const who=document.getElementById('aus-who').value;
+  const motivo=document.getElementById('aus-motivo').value;
+  const obs=document.getElementById('aus-obs').value;
+  ausencias[dk()]={who,motivo,obs};
+  save();buildHome();buildSemaforo();closeM('mo-ausencia');showToast('Ausencia registrada');
+}
+function resetAll(){if(confirm('¿Resetear checks del día?')){checks={};save();buildHome();buildPrev();closeM('mo-admin');showToast('Reseteado');}}
+function sU(el){el.closest('.ug2').querySelectorAll('.uo').forEach(o=>o.classList.remove('su'));el.classList.add('su');}
+
+
+// ════════════════════════════════════════════════════════════════════════════
+// TAREAS EXTRA (no planificadas)
+// ════════════════════════════════════════════════════════════════════════════
+let extrasHoy = JSON.parse(localStorage.getItem('m4-extras')||'[]');
+
+function openAddExtra(){openM('mo-addextra');}
+function saveExtra(){
+  const desc=document.getElementById('ex-desc').value.trim();
+  if(!desc){showToast('Describí qué hiciste');return;}
+  const cat=document.getElementById('ex-cat').value;
+  const tiempo=document.getElementById('ex-time').value;
+  const entry={id:'ex'+Date.now(),who:CU,name:USERS[CU].name,initials:USERS[CU].initials,color:USERS[CU].color,bg:USERS[CU].bg,ts:nf(),dia:dk(),desc,cat,tiempo};
+  extrasHoy.unshift(entry);
+  localStorage.setItem('m4-extras',JSON.stringify(extrasHoy));
+  closeM('mo-addextra');
+  document.getElementById('ex-desc').value='';
+  // Add visual card to my tasks list
+  const el=document.getElementById('hmytasks');
+  const div=document.createElement('div');
+  div.className='card lg';
+  div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px;"><div class="tk" style="flex:1;">${desc}</div><span class="bdg bg2">Extra</span></div><div class="tm">${cat} · ${tiempo} · ${nf()}</div>`;
+  // Insert before the + button
+  const btn=el.querySelector('button');
+  if(btn)el.insertBefore(div,btn); else el.appendChild(div);
+  showToast('Tarea extra registrada ✓');
+  // Also add to today firma context
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// NAV / MODAL / TOAST
+// ════════════════════════════════════════════════════════════════════════════
+const scMap={home:'sc-home',prev:'sc-prev',corr:'sc-corr',temp:'sc-temp',compras:'sc-compras',turno:'sc-turno',obs:'sc-obs',semaforo:'sc-semaforo',dash:'sc-dash',notif:'sc-notif'};
+function goSc(id,btn){
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
+  const el=document.getElementById(scMap[id]||'sc-'+id);if(el)el.classList.add('on');
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  if(id==='notif')buildNotifs();
+  if(id==='corr'){buildCorr();buildCorrFilters();}
+  if(id==='temp')buildTemp();
+  if(id==='compras')buildCompras();
+  if(id==='turno')buildTurno();
+  if(id==='obs')buildObs();
+  if(id==='semaforo')buildSemaforo();
+  if(id==='dash')buildDash();
+}
+function openM(id){document.getElementById(id)?.classList.add('on');}
+function closeM(id){document.getElementById(id)?.classList.remove('on');}
+function cmo(e,id){if(e.target.id===id)closeM(id);}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
+
+// ════════════════════════════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════════════════════════════
+buildLogin();
+</script>
+</body>
+</html>
