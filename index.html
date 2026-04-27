@@ -886,15 +886,19 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && Date.now() - LAST_SYNC > 10000) pullAll();
 });
 
-let USERS=JSON.parse(localStorage.getItem('m4-users')||JSON.stringify(DEFAULT_USERS));
-let checks=JSON.parse(localStorage.getItem('m4-checks')||'{}');
-let corrs=JSON.parse(localStorage.getItem('m4-corrs')||JSON.stringify(SAMPLE_CORR));
-let prevs=JSON.parse(localStorage.getItem('m4-prevs')||JSON.stringify(DEFAULT_PREV));
-let temps=JSON.parse(localStorage.getItem('m4-temps')||'{}');
-let compras=JSON.parse(localStorage.getItem('m4-compras')||JSON.stringify(SAMPLE_COMPRAS));
-let turnos=JSON.parse(localStorage.getItem('m4-turnos')||JSON.stringify(SAMPLE_TURNOS));
-let obsArr=JSON.parse(localStorage.getItem('m4-obs')||JSON.stringify(SAMPLE_OBS));
-let ausencias=JSON.parse(localStorage.getItem('m4-aus')||'{}');
+function safeParse(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e) { localStorage.removeItem(key); return fallback; }
+}
+let USERS    = { ...DEFAULT_USERS }; // always use defaults — PINs managed by Jon in-app
+let checks   = safeParse('m4-checks',  {});
+let corrs    = safeParse('m4-corrs',   SAMPLE_CORR);
+let prevs    = safeParse('m4-prevs',   DEFAULT_PREV);
+let temps    = safeParse('m4-temps',   {});
+let compras  = safeParse('m4-compras', SAMPLE_COMPRAS);
+let turnos   = safeParse('m4-turnos',  SAMPLE_TURNOS);
+let obsArr   = safeParse('m4-obs',     SAMPLE_OBS);
+let ausencias= safeParse('m4-aus',     {});
 let corrFilter='TODOS',comprasView='pendientes',prevView='david';
 let derivTarget=null,turnoEstado='bien';
 
@@ -953,11 +957,29 @@ function canReport(){return !isExec()||true;} // everyone can report
 // LOGIN
 // ════════════════════════════════════════════════════════════════════════════
 function buildLogin(){
-  const g=document.getElementById('ugrid');g.innerHTML='';
-  Object.entries(USERS).forEach(([k,u])=>{
-    const b=document.createElement('button');b.className='ub';
-    b.innerHTML=`<div class="ua" style="background:${u.bg};color:${u.color};">${u.initials}</div><div class="un">${u.name.split(' ')[0]}</div><div class="ur">${u.roleLabel}</div>`;
-    b.onclick=()=>{SUK=k;document.querySelectorAll('.ub').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');document.getElementById('pin').focus();};
+  // Clear any corrupted localStorage from old versions
+  const APP_VERSION = 'v4.1';
+  if (localStorage.getItem('m4-version') !== APP_VERSION) {
+    ['m4-checks','m4-corrs','m4-temps','m4-compras','m4-turnos','m4-obs','m4-aus','m4-extras','m4-prevs'].forEach(k => {
+      try { localStorage.removeItem(k); } catch(e) {}
+    });
+    localStorage.setItem('m4-version', APP_VERSION);
+  }
+
+  const g = document.getElementById('ugrid');
+  if (!g) { console.error('ugrid not found'); return; }
+  g.innerHTML = '';
+
+  Object.entries(DEFAULT_USERS).forEach(([k, u]) => {
+    const b = document.createElement('button');
+    b.className = 'ub';
+    b.innerHTML = `<div class="ua" style="background:${u.bg};color:${u.color};">${u.initials}</div><div class="un">${u.name.split(' ')[0]}</div><div class="ur">${u.roleLabel}</div>`;
+    b.onclick = () => {
+      SUK = k;
+      document.querySelectorAll('.ub').forEach(x => x.classList.remove('sel'));
+      b.classList.add('sel');
+      document.getElementById('pin').focus();
+    };
     g.appendChild(b);
   });
 }
@@ -1866,7 +1888,12 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 // ════════════════════════════════════════════════════════════════════════════
 // BOOT
 // ════════════════════════════════════════════════════════════════════════════
-buildLogin();
+// Boot — ensure DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', buildLogin);
+} else {
+  buildLogin();
+}
 </script>
 </body>
 </html>
