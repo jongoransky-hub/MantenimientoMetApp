@@ -297,9 +297,10 @@ select option{background:#1a1a2a;}
         <div id="halerts"></div>
         <div id="hrecord"></div>
         <div id="hmytasks-wrap">
-          <div class="sh">Mis tareas de hoy (propias + compartidas)</div>
+          <div class="sh">Mis tareas de hoy (diarias)</div>
           <div id="hmytasks"></div>
           <div id="hshared" style="display:none;"></div>
+          <div id="hweekly" style="margin-top:4px;"></div>
         </div>
         <div id="hsemiforo-mini"></div>
       </div>
@@ -603,6 +604,11 @@ select option{background:#1a1a2a;}
     </div>
     <div class="ma"><button class="bs bs-g" onclick="closeM('mo-addextra')">Cancelar</button><button class="bs bs-a" onclick="saveExtra()">Registrar</button></div>
   </div>
+</div>
+
+<!-- HISTORIAL MODAL -->
+<div class="mo" id="mo-historial" onclick="cmo(event,'mo-historial')">
+  <div class="ms fullsize" style="min-height:88vh;" id="mo-historial-inner"></div>
 </div>
 
 <div class="toast2" id="toast"></div>
@@ -929,6 +935,7 @@ function rebuildAllViews() {
   try { buildSemaforo(); } catch(e) {}
   try { buildNotifs(); } catch(e) {}
   try { if(isSemi()||isAdmin()) buildDash(); } catch(e) {}
+  try { updateNavBadge(); } catch(e) {}
   try { rPrevList(); } catch(e) {}
   try { attachCks(); } catch(e) {}
 }
@@ -948,10 +955,37 @@ function showSyncStatus(status) {
 
 // Start polling
 function startSync() {
+  // Smart reset: clear only done checks from previous days
+  // Pending checks from previous days remain (carry forward)
+  smartResetChecks();
   pullAll();
   setInterval(() => {
     if (document.visibilityState === 'visible') pullAll();
   }, SYNC_INTERVAL);
+}
+
+function smartResetChecks() {
+  const today = dk();
+  const lastDay = localStorage.getItem('m4-last-day');
+  if (lastDay && lastDay !== today) {
+    // New day: remove checks that ARE done from previous days
+    // Keep checks that were NOT done (they carry forward as reminders)
+    const newChecks = {};
+    Object.keys(checks).forEach(key => {
+      if (key.startsWith(today)) {
+        newChecks[key] = checks[key]; // keep today's
+      } else if (!checks[key]) {
+        // Was pending (false/unchecked) → carry forward as reminder
+        // Re-key it to today so it shows as pending
+        const taskId = key.replace(/^\d{4}-\d+-\d+/, '');
+        newChecks[today + taskId] = false;
+      }
+      // Done from previous days → drop (they were completed)
+    });
+    checks = newChecks;
+    localStorage.setItem('m4-checks', JSON.stringify(checks));
+  }
+  localStorage.setItem('m4-last-day', today);
 }
 
 document.addEventListener('visibilitychange', () => {
@@ -1088,6 +1122,7 @@ function initApp(){
   adaptUI();
   buildHome();buildPrev();buildCorr();buildCorrFilters();buildTemp();buildCompras();buildTurno();buildObs();buildSemaforo();buildNotifs();
   if(isSemi()||isAdmin())buildDash();
+  try{updateNavBadge();}catch(e){}
   setInterval(checkTempAlerts,60000);
   startSync(); // Start real-time sync with Google Sheets
 }
@@ -1132,6 +1167,18 @@ function buildHome(){
   let recVHTML='';
   if(venc.length&&isExec()){recVHTML=`<div class="sh">Tareas con periodicidad vencida</div>${venc.slice(0,3).map(p=>`<div class="rec-card"><div class="rec-icon">⏰</div><div><div class="rec-task">${p.task}</div><div class="rec-sub">${p.sector}</div><div class="rec-period">${p.period} – sin registrar</div></div></div>`).join('')}`;}
 
+  // Firma reminder: show if exec hasn't signed today and it's after 17hs
+  if(isExec()){
+    const now=new Date();
+    const signedToday=turnos.some(t=>t.who===CU&&t.ts&&t.ts.includes(dk().split('-').reverse().join('/')));
+    if(now.getHours()>=17&&!signedToday){
+      recHTML+=`<div style="background:#4c7cf820;border:0.5px solid #4c7cf860;border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="goSc('turno',document.querySelectorAll('.nb')[6])">
+        <span style="font-size:16px;">📋</span>
+        <div><div style="font-size:11px;font-weight:600;color:#8aaaff;">Firma de turno pendiente</div>
+        <div style="font-size:10px;color:#9898c8;">Recordá registrar tu turno antes de salir</div></div>
+      </div>`;
+    }
+  }
   document.getElementById('hrecord').innerHTML=recHTML;
   document.getElementById('hstats').innerHTML=`
     <div class="sb" onclick="goSc('prev',document.querySelectorAll('.nb')[1])"><div class="sn" style="color:var(--ac2);">${allT.length}</div><div class="sl" style="color:var(--t1);">Tareas hoy</div></div>
@@ -1139,7 +1186,7 @@ function buildHome(){
       <div class="sn" style="color:var(--red);">${urgC}</div>
       <div class="sl" style="color:${urgC>0?'#ffffff':'var(--t2)'};">Urgentes</div>
     </div>
-    <div class="sb" onclick="goSc('prev',document.querySelectorAll('.nb')[1])"><div class="sn" style="color:var(--ora);">${pendC}</div><div class="sl" style="color:var(--t1);">Pendientes hoy</div></div>
+    <div class="sb" onclick="toggleWeekly&&toggleWeekly()"><div class="sn" style="color:var(--ora);">${pendC}</div><div class="sl" style="color:var(--t1);">Pendientes hoy</div></div>
     <div class="sb" onclick="showCompletadas()"><div class="sn" style="color:var(--grn);">${doneCount}</div><div class="sl" style="color:var(--t1);">Completadas</div></div>`;
 
   let alertHTML='';
@@ -1153,9 +1200,31 @@ function buildHome(){
     const allDaily=myKey
       ? prevs.filter(p=>(p.resp===myKey||p.resp==='ambos')&&p.period==='Diaria')
       : prevs.filter(p=>p.period==='Diaria');
+    const allWeekly=myKey
+      ? prevs.filter(p=>(p.resp===myKey||p.resp==='ambos')&&p.period==='Semanal')
+      : prevs.filter(p=>p.period==='Semanal');
+    const weeklyDone=allWeekly.filter(p=>checks[dk()+p.id]).length;
+    const weeklyPend=allWeekly.length-weeklyDone;
+
     document.getElementById('hmytasks').innerHTML=
       allDaily.map(tCard).join('')+
       `<button onclick="openAddExtra()" style="width:100%;background:var(--s2);border:0.5px solid var(--b2);border-radius:10px;padding:9px;color:var(--ac2);font-size:11px;font-family:var(--fn);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;margin-top:4px;">+ Tarea no planificada</button>`;
+
+    // Weekly section — collapsible
+    const weeklyEl=document.getElementById('hweekly');
+    if(allWeekly.length&&weeklyEl){
+      const allWDone=weeklyDone===allWeekly.length;
+      const wColor=allWDone?'var(--grn)':weeklyPend>0?'var(--ora)':'var(--t2)';
+      weeklyEl.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:4px 0 2px;" onclick="toggleWeekly()">
+          <div class="sh" style="margin:0;">Semanales esta semana</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;font-weight:600;color:${wColor};">${weeklyDone}/${allWeekly.length}</span>
+            <span style="font-size:9px;color:var(--t2);" id="weekly-chevron">▼</span>
+          </div>
+        </div>
+        <div id="weekly-list" style="display:none;margin-top:4px;">${allWeekly.map(tCard).join('')}</div>`;
+    }
     document.getElementById('hshared').innerHTML='';
     attachCks();
   }
@@ -1165,7 +1234,8 @@ function buildHome(){
   document.getElementById('hsemiforo-mini').innerHTML=`
     <div class="sh" style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;"><span>Semáforo del día</span><span style="font-size:9px;color:var(--acc);cursor:pointer;" onclick="goSc('semaforo',document.querySelectorAll('.nb')[7])">ver completo →</span></div>
     <div style="display:flex;gap:6px;margin-bottom:6px;">
-      ${['david','andres'].map(k=>{const u=USERS[k];const d=smData[k];const col=d.pct>=80?'var(--grn)':d.pct>=50?'var(--yel)':'var(--red)';return `<div style="flex:1;background:var(--s1);border:0.5px solid var(--b1);border-radius:10px;padding:9px 8px;cursor:pointer;" onclick="goSc('semaforo',document.querySelectorAll('.nb')[7])"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11px;color:var(--t1);">${u.name.split(' ')[0]}</span><span style="font-size:16px;font-weight:600;color:${col};">${d.pct}%</span></div><div style="height:3px;background:var(--s3);border-radius:2px;margin-top:5px;"><div style="height:3px;border-radius:2px;background:${col};width:${d.pct}%;transition:width 0.4s;"></div></div><div style="font-size:9px;color:#9898c8;margin-top:3px;">${d.done}/${d.total} diarias</div></div>`;}).join('')}
+      ${['david','andres'].map(k=>{const u=USERS[k];const d=smData[k];const absent2=ausencias[dk()]&&(ausencias[dk()].who===k||ausencias[dk()].who==='ambos');
+        const col=absent2?'var(--t3)':d.pct>=80?'var(--grn)':d.pct>=50?'var(--yel)':'var(--red)';return `<div style="flex:1;background:var(--s1);border:0.5px solid ${absent2?'var(--b2)':'var(--b1)'};border-radius:10px;padding:9px 8px;cursor:pointer;${absent2?'opacity:0.5;':''}" onclick="goSc('semaforo',document.querySelectorAll('.nb')[7])"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11px;color:var(--t1);">${u.name.split(' ')[0]}</span><span style="font-size:16px;font-weight:600;color:${col};">${d.pct}%</span></div><div style="height:3px;background:var(--s3);border-radius:2px;margin-top:5px;"><div style="height:3px;border-radius:2px;background:${col};width:${d.pct}%;transition:width 0.4s;"></div></div><div style="font-size:9px;color:#9898c8;margin-top:3px;">${d.done}/${d.total} diarias</div></div>`;}).join('')}
     </div>
     ${recVHTML}`;
 }
@@ -1365,7 +1435,8 @@ function confirmRes(){
   const c=corrs.find(x=>x.id===id);if(!c)return;
   const resFoto=document.getElementById('res-foto-preview');
   const resFotoData=resFoto&&resFoto.src&&resFoto.src.startsWith('data:')?resFoto.src:'';
-  Object.assign(c,{status:'RESUELTO',rBy:document.getElementById('res-w').value,rWhen:document.getElementById('res-wh').value,rObs:obs,rType:document.getElementById('res-t').value,fotoRes:resFotoData});
+  const rType=document.getElementById('res-t').value;
+  Object.assign(c,{status:rType==='Provisorio'?'PROVISORIO':'RESUELTO',rBy:document.getElementById('res-w').value,rWhen:document.getElementById('res-wh').value,rObs:obs,rType,fotoRes:resFotoData,provisorioDate:rType==='Provisorio'?dk():''});
   save();syncCorr(c);buildCorr();buildHome();closeM('mo-resolve');
   showToast(c.rType==='Definitivo'?'Resuelta definitivamente ✓':'Marcada provisoria');
 }
@@ -1617,9 +1688,12 @@ function showPersonTasks(personKey){
   const u=USERS[personKey];
   const t=dk();
   // Daily tasks + weekly tasks for this person
-  const myTasks=prevs.filter(p=>(p.resp===personKey||p.resp==='ambos')&&(p.period==='Diaria'||p.period==='Semanal'));
+  const dailyT=prevs.filter(p=>(p.resp===personKey||p.resp==='ambos')&&p.period==='Diaria');
+  const weeklyT=prevs.filter(p=>(p.resp===personKey||p.resp==='ambos')&&p.period==='Semanal');
+  const myTasks=[...dailyT,...weeklyT];
   const done=myTasks.filter(p=>checks[t+p.id]);
-  const pending=myTasks.filter(p=>!checks[t+p.id]);
+  const pending=dailyT.filter(p=>!checks[t+p.id]); // only daily pending = urgent
+  const pendingWeekly=weeklyT.filter(p=>!checks[t+p.id]);
   const extras=JSON.parse(localStorage.getItem('m4-extras')||'[]').filter(e=>e.who===personKey&&e.dia===t);
 
   document.getElementById('bita-title').textContent=u.name+' · Tareas del día';
@@ -1631,8 +1705,12 @@ function showPersonTasks(personKey){
 
   let html='';
   if(pending.length){
-    html+='<div style="font-size:9px;color:var(--ora);font-weight:600;text-transform:uppercase;margin-bottom:5px;">Pendientes ('+pending.length+')</div>';
+    html+='<div style="font-size:9px;color:var(--ora);font-weight:600;text-transform:uppercase;margin-bottom:5px;">Diarias pendientes hoy ('+pending.length+')</div>';
     html+=pending.map(p=>`<div class="be" style="border-left:2px solid var(--ora);padding-left:8px;"><div class="bt3">${p.task}</div><div class="bw">${p.period} · ${p.sector}</div></div>`).join('');
+  }
+  if(pendingWeekly.length){
+    html+='<div style="font-size:9px;color:var(--ac2);font-weight:600;text-transform:uppercase;margin:8px 0 5px;">Semanales pendientes esta semana ('+pendingWeekly.length+')</div>';
+    html+=pendingWeekly.map(p=>`<div class="be" style="border-left:2px solid var(--acc);padding-left:8px;"><div class="bt3">${p.task}</div><div class="bw">${p.period} · ${p.sector}</div></div>`).join('');
   }
   if(done.length){
     html+='<div style="font-size:9px;color:var(--grn);font-weight:600;text-transform:uppercase;margin:8px 0 5px;">Completadas ('+done.length+')</div>';
@@ -1686,7 +1764,7 @@ function buildSemaforo(){
   const weekPend=corrs.filter(c=>c.status==='PENDIENTE').length;
   const weekDeriv=corrs.filter(c=>c.status==='DERIVADA').length;
   let html=`
-    <div class="sh">Cobertura de tareas hoy</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;"><div class="sh">Cobertura de tareas hoy</div><button onclick="openHistorial()" style="background:var(--s2);border:0.5px solid var(--b2);border-radius:20px;padding:3px 10px;color:var(--acc);font-size:9px;cursor:pointer;font-family:var(--fn);">📅 Historial</button></div>
     <div class="smf">
       ${['david','andres'].map(k=>{
         const u=USERS[k];const d=smData[k];
@@ -1783,6 +1861,40 @@ function buildDash(){
 // ════════════════════════════════════════════════════════════════════════════
 // NOTIFS
 // ════════════════════════════════════════════════════════════════════════════
+function updateNavBadge(){
+  const urgCount=corrs.filter(c=>c.urg==='URGENTE'&&c.status!=='RESUELTO').length;
+  const pendDerivs=corrs.filter(c=>c.derivTo&&USERS[CU]&&(c.derivTo===USERS[CU].name||c.derivTo==='Todos')&&c.status!=='RESUELTO').length;
+  const total=urgCount+pendDerivs;
+  // Update Avisos nav badge
+  const nb=document.querySelectorAll('.nb');
+  nb.forEach(b=>{
+    const lbl=b.querySelector('.nl');
+    if(lbl&&lbl.textContent==='Avisos'){
+      let badge=b.querySelector('.nav-badge');
+      if(total>0){
+        if(!badge){badge=document.createElement('div');badge.className='nav-badge';b.style.position='relative';b.appendChild(badge);}
+        badge.textContent=total;
+        badge.style.cssText='position:absolute;top:2px;right:6px;background:var(--red);color:#fff;font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px;';
+      } else if(badge){badge.remove();}
+    }
+  });
+}
+
+function updateNavBadge(){
+  const urgCount=corrs.filter(c=>c.urg==='URGENTE'&&c.status!=='RESUELTO').length;
+  const pendDerivs=corrs.filter(c=>c.derivTo&&USERS[CU]&&(c.derivTo===USERS[CU].name||c.derivTo==='Todos')&&c.status!=='RESUELTO').length;
+  const total=urgCount+pendDerivs;
+  document.querySelectorAll('.nb').forEach(b=>{
+    const lbl=b.querySelector('.nl');
+    if(lbl&&lbl.textContent==='Avisos'){
+      let badge=b.querySelector('.nav-badge');
+      if(total>0){
+        if(!badge){badge=document.createElement('div');badge.className='nav-badge';b.style.position='relative';b.appendChild(badge);}
+        badge.textContent=total;badge.style.cssText='position:absolute;top:2px;right:4px;background:var(--red);color:#fff;font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px;';
+      } else if(badge){badge.remove();}
+    }
+  });
+}
 function buildNotifs(){
   document.getElementById('notif-list').innerHTML=SAMPLE_NOTIFS.map(n=>`<div class="notif-i" style="display:flex;gap:8px;padding:9px 0;border-bottom:0.5px solid var(--b1);"><div style="width:32px;height:32px;border-radius:50%;background:${n.color}20;color:${n.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;">${n.initials}</div><div style="flex:1;"><div style="font-size:11px;font-weight:500;color:var(--t1);">${n.from}</div><div style="font-size:11px;color:#b8b8d8;margin-top:2px;line-height:1.4;">${n.msg}</div><div style="font-size:9px;color:#9898c8;margin-top:2px;">${n.when}</div></div>${n.unread?'<div style="width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:3px;"></div>':''}</div>`).join('');
   const der=corrs.filter(c=>c.status==='DERIVADA');
@@ -1937,6 +2049,15 @@ function sU(el){el.closest('.ug2').querySelectorAll('.uo').forEach(o=>o.classLis
 // ════════════════════════════════════════════════════════════════════════════
 let extrasHoy = JSON.parse(localStorage.getItem('m4-extras')||'[]');
 
+
+function toggleWeekly(){
+  const list=document.getElementById('weekly-list');
+  const chev=document.getElementById('weekly-chevron');
+  if(!list)return;
+  const open=list.style.display==='none';
+  list.style.display=open?'block':'none';
+  if(chev)chev.textContent=open?'▲':'▼';
+}
 function openAddExtra(){openM('mo-addextra');}
 function saveExtra(){
   const desc=document.getElementById('ex-desc').value.trim();
@@ -1962,6 +2083,108 @@ function saveExtra(){
   // Also add to today firma context
 }
 
+
+// ════════════════════════════════════════════════════════════════════════════
+// HISTORIAL SEMANAL NAVEGABLE
+// ════════════════════════════════════════════════════════════════════════════
+function openHistorial(){
+  // Build last 7 days navigation
+  const days=[];
+  for(let i=0;i<7;i++){
+    const d=new Date();d.setDate(d.getDate()-i);
+    days.push(`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`);
+  }
+  const dayNames=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  
+  let html=`<div class="mh"></div><div class="mt2">Historial semanal</div>
+    <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:8px;margin-bottom:10px;">
+      ${days.map((d,i)=>{
+        const dt=new Date(d+'T12:00:00');
+        const label=i===0?'Hoy':(i===1?'Ayer':dayNames[dt.getDay()]);
+        return `<button onclick="showHistorialDay('${d}',this)" style="flex-shrink:0;padding:5px 10px;border-radius:20px;border:0.5px solid var(--b2);background:${i===0?'var(--acc)':'var(--s2)'};color:${i===0?'#fff':'var(--t1)'};font-size:10px;cursor:pointer;font-family:var(--fn);">${label}<br><span style="font-size:8px;opacity:0.7;">${dt.getDate()}/${dt.getMonth()+1}</span></button>`;
+      }).join('')}
+    </div>
+    <div id="hist-content" style="max-height:60vh;overflow-y:auto;"></div>
+    <div style="margin-top:10px;"><button class="bs bs-g" onclick="closeM('mo-historial')" style="width:100%;">Cerrar</button></div>`;
+  
+  document.getElementById('mo-historial-inner').innerHTML=html;
+  showHistorialDay(days[0],null);
+  openM('mo-historial');
+}
+
+function showHistorialDay(d, btn){
+  // Highlight selected button
+  document.querySelectorAll('#mo-historial-inner button[onclick^="showHistorialDay"]').forEach(b=>{
+    b.style.background='var(--s2)';b.style.color='var(--t1)';
+  });
+  if(btn){btn.style.background='var(--acc)';btn.style.color='#fff';}
+
+  let html='';
+  
+  // Checks for this day
+  ['david','andres'].forEach(key=>{
+    const u=USERS[key];
+    const myT=prevs.filter(p=>(p.resp===key||p.resp==='ambos'));
+    const done=myT.filter(p=>checks[d+p.id]);
+    const pend=myT.filter(p=>!checks[d+p.id]&&(p.period==='Diaria'||p.period==='Semanal'));
+    if(!myT.length)return;
+    const pct=myT.length?Math.round(done.length/myT.filter(p=>p.period==='Diaria').length*100||0):0;
+    html+=`<div style="background:var(--s2);border-radius:10px;padding:10px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div style="width:24px;height:24px;border-radius:50%;background:${u.bg};color:${u.color};font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;">${u.initials}</div>
+          <span style="font-size:12px;font-weight:500;color:var(--t1);">${u.name.split(' ')[0]}</span>
+        </div>
+        <span style="font-size:13px;font-weight:600;color:${pct>=80?'var(--grn)':pct>=50?'var(--yel)':'var(--red)'};">${done.length} hechas</span>
+      </div>
+      ${done.slice(0,5).map(p=>`<div style="font-size:10px;color:var(--grn);padding:2px 0;">✓ ${p.task}</div>`).join('')}
+      ${done.length>5?`<div style="font-size:9px;color:var(--t2);">+${done.length-5} más...</div>`:''}
+      ${pend.length?`<div style="font-size:9px;color:var(--ora);margin-top:4px;">${pend.length} pendiente${pend.length>1?'s':''}</div>`:''}
+    </div>`;
+  });
+
+  // Temperaturas del día
+  const t1=temps['s1_'+d]||[];
+  const t2=temps['s2_'+d]||[];
+  if(t1.length||t2.length){
+    html+=`<div style="background:var(--s2);border-radius:10px;padding:10px;margin-bottom:8px;">
+      <div class="sh" style="margin-bottom:6px;">Temperaturas</div>
+      ${t1.map(e=>`<div style="font-size:10px;color:var(--t1);padding:2px 0;">Sala 1 · ${e.time} · <strong>${e.val}°C</strong> · ${e.ctx}</div>`).join('')}
+      ${t2.map(e=>`<div style="font-size:10px;color:var(--t1);padding:2px 0;">Sala 2 · ${e.time} · <strong>${e.val}°C</strong> · ${e.ctx}</div>`).join('')}
+    </div>`;
+  }
+
+  // Turnos del día
+  const dayTurnos=turnos.filter(t=>{
+    const ts=String(t.ts||'');
+    const dParts=d.split('-');
+    return ts.includes(`${dParts[2]}/${dParts[1]}`);
+  });
+  if(dayTurnos.length){
+    html+=`<div style="background:var(--s2);border-radius:10px;padding:10px;margin-bottom:8px;">
+      <div class="sh" style="margin-bottom:6px;">Firmas de turno</div>
+      ${dayTurnos.map(t=>`<div style="font-size:10px;color:var(--t1);padding:3px 0;border-bottom:0.5px solid var(--b1);">
+        <strong>${t.name||t.who}</strong> · ${t.ts}<br>
+        ${t.hecho?`<span style="color:var(--t2);">${String(t.hecho).slice(0,80)}</span>`:''}
+      </div>`).join('')}
+    </div>`;
+  }
+
+  // Correctivas del día
+  const dayCorrs=corrs.filter(c=>String(c.date||'').includes(d.split('-').reverse().join('/')));
+  if(dayCorrs.length){
+    html+=`<div style="background:var(--s2);border-radius:10px;padding:10px;margin-bottom:8px;">
+      <div class="sh" style="margin-bottom:6px;">Correctivas (${dayCorrs.length})</div>
+      ${dayCorrs.map(c=>`<div style="font-size:10px;color:var(--t1);padding:2px 0;">
+        <span class="bdg ${c.status==='RESUELTO'?'bg2':c.status==='PENDIENTE'?'br':'bb2'}">${c.status}</span>
+        ${c.task}
+      </div>`).join('')}
+    </div>`;
+  }
+
+  if(!html)html=`<div style="color:var(--t2);font-size:11px;text-align:center;padding:20px;">Sin actividad registrada este día</div>`;
+  document.getElementById('hist-content').innerHTML=html;
+}
 // ════════════════════════════════════════════════════════════════════════════
 // NAV / MODAL / TOAST
 // ════════════════════════════════════════════════════════════════════════════
