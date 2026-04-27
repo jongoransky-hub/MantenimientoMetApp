@@ -279,6 +279,7 @@ select option{background:#1a1a2a;}
       <div class="tn2" id="topname"></div>
     </div>
     <div class="tr">
+      <span id="sync-status" style="font-size:9px;color:#9090c0;font-family:var(--mo);">○ …</span>
       <div class="nd" id="notifdot" style="display:none;"></div>
       <div class="av" id="topav" onclick="tryAdmin()"></div>
     </div>
@@ -414,6 +415,12 @@ select option{background:#1a1a2a;}
       <div class="ug2" id="nc-urg"><div class="uo uu su" onclick="sU(this)"><div class="un2">Urgente</div></div><div class="uo up" onclick="sU(this)"><div class="un2">Prioritaria</div></div><div class="uo un" onclick="sU(this)"><div class="un2">Necesaria</div></div></div>
     </div>
     <div class="f" id="nc-assign-wrap"><label>Asignar a</label><select id="nc-a"><option>David Vargas</option><option>Andrés Patiño</option><option>Ambos</option></select></div>
+    <div class="f">
+      <label>Foto del problema (opcional)</label>
+      <button class="fb" onclick="document.getElementById('nc-foto-input').click()">📷 Adjuntar foto</button>
+      <input type="file" id="nc-foto-input" accept="image/*" capture="environment" style="display:none;" onchange="prevFoto(this,'nc-foto-preview')"/>
+      <img id="nc-foto-preview" class="fp" alt="" style="margin-top:6px;"/>
+    </div>
     <div class="ma"><button class="bs bs-g" onclick="closeM('mo-newcorr')">Cancelar</button><button class="bs bs-a" onclick="addCorr()">Guardar</button></div>
   </div>
 </div>
@@ -437,6 +444,12 @@ select option{background:#1a1a2a;}
     <div class="f"><label>¿Qué se hizo exactamente?</label><textarea id="res-o" placeholder="Describí la solución..."></textarea></div>
     <div class="f"><label>¿Definitivo o provisorio?</label><select id="res-t" onchange="document.getElementById('res-prov').style.display=this.value==='Provisorio'?'block':'none'"><option value="Definitivo">Definitivo – cerrado</option><option value="Provisorio">Provisorio – requiere seguimiento</option></select></div>
     <div id="res-prov" style="display:none;background:var(--ybg);border:0.5px solid var(--ybd);border-radius:8px;padding:7px 9px;font-size:10px;color:var(--yel);margin-bottom:4px;">Quedará pendiente de resolución definitiva.</div>
+    <div class="f">
+      <label>Foto del arreglo realizado (opcional)</label>
+      <button class="fb" onclick="document.getElementById('res-foto-input').click()">📷 Adjuntar foto</button>
+      <input type="file" id="res-foto-input" accept="image/*" capture="environment" style="display:none;" onchange="prevFoto(this,'res-foto-preview')"/>
+      <img id="res-foto-preview" class="fp" alt="" style="margin-top:6px;"/>
+    </div>
     <div class="ma"><button class="bs bs-g" onclick="closeM('mo-resolve')">Cancelar</button><button class="bs bs-gr" onclick="confirmRes()">Confirmar</button></div>
   </div>
 </div>
@@ -684,6 +697,181 @@ const SAMPLE_OBS=[
 // STATE
 // ════════════════════════════════════════════════════════════════════════════
 let CU=null,SUK=null;
+
+// ════════════════════════════════════════════════════════════════════════════
+// SYNC ENGINE — Google Sheets Backend
+// ════════════════════════════════════════════════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycbyKXEnCyRZTkS9DNm-nkyhFh5dnXrSkCOXFRMUzOJCNj-3nHeMxj-xJEYPuZrOkxjmR/exec';
+let SYNC_READY = false;
+let SYNC_QUEUE = [];
+let LAST_SYNC = 0;
+const SYNC_INTERVAL = 15000; // Poll every 15 seconds
+
+async function apiGet(table) {
+  if (!API_URL) return null;
+  try {
+    const res = await fetch(`${API_URL}?action=getAll&table=${table}&t=${Date.now()}`);
+    const json = await res.json();
+    return json.ok ? json.data : null;
+  } catch(e) { return null; }
+}
+
+async function apiPost(action, table, payload) {
+  if (!API_URL) return null;
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action, table, ...payload })
+    });
+    const json = await res.json();
+    return json.ok ? json.data : null;
+  } catch(e) {
+    // Queue for retry when back online
+    SYNC_QUEUE.push({ action, table, payload, ts: Date.now() });
+    return null;
+  }
+}
+
+// Push a single row update
+async function syncUpsert(table, row) {
+  // Always update local immediately
+  localStorage.setItem('m4-' + table, JSON.stringify(
+    table === 'checks' ? checks :
+    table === 'correctivas' ? corrs :
+    table === 'temperaturas' ? temps :
+    table === 'compras' ? compras :
+    table === 'turnos' ? turnos :
+    table === 'observaciones' ? obsArr :
+    table === 'ausencias' ? ausencias :
+    table === 'extras' ? extrasHoy : []
+  ));
+  // Then push to server async
+  return apiPost('upsert', table, { row });
+}
+
+async function syncDelete(table, id) {
+  return apiPost('delete', table, { id });
+}
+
+async function syncReplaceAll(table, rows) {
+  localStorage.setItem('m4-' + table, JSON.stringify(rows));
+  return apiPost('replaceAll', table, { rows });
+}
+
+// Full pull from server — called on login and every 15s
+async function pullAll() {
+  if (!API_URL) {
+    showSyncStatus('offline');
+    return;
+  }
+  showSyncStatus('syncing');
+  try {
+    const [
+      remoteCorrs, remoteTemps, remoteCompras,
+      remoteTurnos, remoteObs, remoteAus,
+      remoteExtras, remoteChecks, remotePrevs
+    ] = await Promise.all([
+      apiGet('correctivas'), apiGet('temperaturas'), apiGet('compras'),
+      apiGet('turnos'), apiGet('observaciones'), apiGet('ausencias'),
+      apiGet('extras'), apiGet('checks'), apiGet('preventivas')
+    ]);
+
+    let changed = false;
+
+    if (remoteCorrs !== null) { corrs = remoteCorrs; changed = true; }
+    if (remoteChecks !== null) {
+      // checks come as rows, convert to object
+      const ck = {};
+      remoteChecks.forEach(r => { if(r.id) ck[r.id] = r.done === true || r.done === 'TRUE' || r.done === 'true'; });
+      checks = ck; changed = true;
+    }
+    if (remoteTemps !== null) {
+      // convert flat rows back to grouped object
+      const tg = {};
+      remoteTemps.forEach(r => {
+        const key = `s${r.sala}_${r.date}`;
+        if (!tg[key]) tg[key] = [];
+        tg[key].push({ val: parseFloat(r.val), ctx: r.ctx, time: r.time, sk: parseInt(r.sk)||0, by: r.by });
+      });
+      temps = tg; changed = true;
+    }
+    if (remoteCompras !== null) { compras = remoteCompras; changed = true; }
+    if (remoteTurnos !== null) { turnos = remoteTurnos; changed = true; }
+    if (remoteObs !== null) { obsArr = remoteObs; changed = true; }
+    if (remoteAus !== null) {
+      const ag = {};
+      remoteAus.forEach(r => { if(r.date) ag[r.date] = { who: r.who, motivo: r.motivo, obs: r.obs }; });
+      ausencias = ag; changed = true;
+    }
+    if (remoteExtras !== null) { extrasHoy = remoteExtras; changed = true; }
+    if (remotePrevs !== null && remotePrevs.length > 0) { prevs = remotePrevs; changed = true; }
+
+    // Save local cache
+    ['checks','corrs','temps','compras','turnos','obs','aus'].forEach(k => {
+      try { localStorage.setItem('m4-' + (k==='corrs'?'correctivas':k==='obs'?'observaciones':k==='aus'?'ausencias':k), JSON.stringify(
+        k==='checks'?checks:k==='corrs'?corrs:k==='temps'?temps:k==='compras'?compras:k==='turnos'?turnos:k==='obs'?obsArr:ausencias
+      )); } catch(e) {}
+    });
+
+    if (changed) {
+      rebuildAllViews();
+    }
+
+    SYNC_READY = true;
+    LAST_SYNC = Date.now();
+    showSyncStatus('online');
+
+    // Retry queued operations
+    if (SYNC_QUEUE.length > 0) {
+      const q = [...SYNC_QUEUE]; SYNC_QUEUE = [];
+      q.forEach(op => apiPost(op.action, op.table, op.payload));
+    }
+  } catch(e) {
+    showSyncStatus('offline');
+  }
+}
+
+function rebuildAllViews() {
+  try { buildHome(); } catch(e) {}
+  try { buildCorr(); } catch(e) {}
+  try { buildCorrFilters(); } catch(e) {}
+  try { buildTemp(); } catch(e) {}
+  try { buildCompras(); } catch(e) {}
+  try { buildTurno(); } catch(e) {}
+  try { buildObs(); } catch(e) {}
+  try { buildSemaforo(); } catch(e) {}
+  try { buildNotifs(); } catch(e) {}
+  try { if(isSemi()||isAdmin()) buildDash(); } catch(e) {}
+  try { rPrevList(); } catch(e) {}
+  try { attachCks(); } catch(e) {}
+}
+
+function showSyncStatus(status) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const states = {
+    online:  { txt: '● En línea', color: '#28d464' },
+    syncing: { txt: '◌ Sincronizando…', color: '#f5c030' },
+    offline: { txt: '○ Sin conexión', color: '#9090c0' },
+  };
+  const s = states[status] || states.offline;
+  el.textContent = s.txt;
+  el.style.color = s.color;
+}
+
+// Start polling
+function startSync() {
+  pullAll();
+  setInterval(() => {
+    if (document.visibilityState === 'visible') pullAll();
+  }, SYNC_INTERVAL);
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && Date.now() - LAST_SYNC > 10000) pullAll();
+});
+
 let USERS=JSON.parse(localStorage.getItem('m4-users')||JSON.stringify(DEFAULT_USERS));
 let checks=JSON.parse(localStorage.getItem('m4-checks')||'{}');
 let corrs=JSON.parse(localStorage.getItem('m4-corrs')||JSON.stringify(SAMPLE_CORR));
@@ -700,6 +888,7 @@ function dk(){const n=new Date();return `${n.getFullYear()}-${n.getMonth()}-${n.
 function ns(){const n=new Date();return `${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`;}
 function nf(){const n=new Date();return `${n.getDate()}/${n.getMonth()+1} ${ns()} hs`;}
 function save(){
+  // Always save locally first (instant)
   localStorage.setItem('m4-users',JSON.stringify(USERS));
   localStorage.setItem('m4-checks',JSON.stringify(checks));
   localStorage.setItem('m4-corrs',JSON.stringify(corrs));
@@ -709,6 +898,29 @@ function save(){
   localStorage.setItem('m4-turnos',JSON.stringify(turnos));
   localStorage.setItem('m4-obs',JSON.stringify(obsArr));
   localStorage.setItem('m4-aus',JSON.stringify(ausencias));
+  // Remote sync handled by specific sync calls in each write function
+}
+
+// ─ Targeted sync helpers ─────────────────────────────────────────────────────
+function syncCheck(taskId, done) {
+  const id = dk() + taskId;
+  apiPost('upsert', 'checks', { row: { id, taskId, userId: CU, date: dk(), done: done, ts: nf() } });
+}
+function syncCorr(c) { apiPost('upsert', 'correctivas', { row: flattenCorr(c) }); }
+function syncDeleteCorr(id) { syncDelete('correctivas', id); }
+function syncTemp(sala, entry) {
+  const id = `s${sala}_${entry.time}_${entry.by}`.replace(/[^a-zA-Z0-9_]/g,'_');
+  apiPost('upsert', 'temperaturas', { row: { id, sala, ...entry, date: dk() } });
+}
+function syncCompra(c) { apiPost('upsert', 'compras', { row: c }); }
+function syncTurno(t) { apiPost('upsert', 'turnos', { row: t }); }
+function syncObs(o) { apiPost('upsert', 'observaciones', { row: o }); }
+function syncAusencia(date, data) { apiPost('upsert', 'ausencias', { row: { id: date, date, ...data } }); }
+function syncExtra(e) { apiPost('upsert', 'extras', { row: e }); }
+function syncPrevs() { apiPost('replaceAll', 'preventivas', { rows: prevs }); }
+
+function flattenCorr(c) {
+  return { ...c, bita: JSON.stringify(c.bita||[]) };
 }
 
 function isExec(){return USERS[CU]?.role==='exec';}
@@ -760,6 +972,7 @@ function initApp(){
   buildHome();buildPrev();buildCorr();buildCorrFilters();buildTemp();buildCompras();buildTurno();buildObs();buildSemaforo();buildNotifs();
   if(isSemi()||isAdmin())buildDash();
   setInterval(checkTempAlerts,60000);
+  startSync(); // Start real-time sync with Google Sheets
 }
 
 function adaptUI(){
@@ -966,6 +1179,7 @@ function buildCorr(){
       </div>
       <div class="tm">${c.loc} · ${c.date}</div>
       ${c.obs?`<div class="tm" style="font-style:italic;margin-top:2px;">"${c.obs}"</div>`:''}
+      ${c.foto?`<img src="${c.foto}" style="width:100%;border-radius:8px;margin-top:6px;max-height:140px;object-fit:cover;" onclick="this.style.maxHeight=this.style.maxHeight==='none'?'140px':'none'"/>`:''}
       ${c.sched?`<div class="tm" style="color:var(--yel);margin-top:2px;">📅 ${c.sched}</div>`:''}
       ${lastB?`<div style="background:var(--s2);border-radius:7px;padding:5px 7px;margin-top:5px;"><div style="font-size:9px;color:#9090c0;">${lastB.ts} · ${lastB.who.split(' ')[0]}</div><div style="font-size:10px;color:#b8b8d8;margin-top:1px;">${lastB.text}</div></div>`:''}
       <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;"><span class="bdg ${sb}">${c.status}</span>${c.derivTo?`<span class="bdg bp">→ ${c.derivTo}</span>`:''}</div>
@@ -985,6 +1199,7 @@ function buildCorr(){
         <div class="tm">${c.loc} · ${c.date}</div>
         ${c.rBy?`<div class="tm" style="margin-top:4px;"><span style="color:var(--grn);font-weight:600;">Por:</span> ${c.rBy} · ${c.rWhen}</div>`:''}
         ${c.rObs?`<div class="tm" style="font-style:italic;">"${c.rObs}"</div>`:''}
+        ${c.fotoRes?`<img src="${c.fotoRes}" style="width:100%;border-radius:8px;margin-top:6px;max-height:140px;object-fit:cover;"/>`:''}
         ${c.rType?`<div style="margin-top:4px;"><span class="bdg ${c.rType==='Definitivo'?'bg2':'by'}">${c.rType}</span></div>`:''}
       </div>`;
     });
@@ -1015,7 +1230,7 @@ function saveBita(){
   c.bita.push({ts:nf(),who:USERS[CU].name,text});
   const fecha=document.getElementById('bita-f').value;
   if(fecha)c.sched=fecha;
-  c.status='EN PROCESO';save();buildCorr();closeM('mo-bita');showToast('Avance registrado ✓');
+  c.status='EN PROCESO';save();syncCorr(c);buildCorr();closeM('mo-bita');showToast('Avance registrado ✓');
 }
 
 function openRes(id){
@@ -1031,8 +1246,10 @@ function confirmRes(){
   const obs=document.getElementById('res-o').value.trim();
   if(!obs){showToast('Describí qué se hizo');return;}
   const c=corrs.find(x=>x.id===id);if(!c)return;
-  Object.assign(c,{status:'RESUELTO',rBy:document.getElementById('res-w').value,rWhen:document.getElementById('res-wh').value,rObs:obs,rType:document.getElementById('res-t').value});
-  save();buildCorr();buildHome();closeM('mo-resolve');
+  const resFoto=document.getElementById('res-foto-preview');
+  const resFotoData=resFoto&&resFoto.src&&resFoto.src.startsWith('data:')?resFoto.src:'';
+  Object.assign(c,{status:'RESUELTO',rBy:document.getElementById('res-w').value,rWhen:document.getElementById('res-wh').value,rObs:obs,rType:document.getElementById('res-t').value,fotoRes:resFotoData});
+  save();syncCorr(c);buildCorr();buildHome();closeM('mo-resolve');
   showToast(c.rType==='Definitivo'?'Resuelta definitivamente ✓':'Marcada provisoria');
 }
 
@@ -1064,14 +1281,16 @@ function confirmDeriv(){
   if(!m){showToast('Escribí el motivo');return;}
   const c=corrs.find(x=>x.id===id);if(!c)return;
   c.status='DERIVADA';c.derivTo=derivTarget.n;c.derivM=m;
-  save();buildCorr();buildNotifs();closeM('mo-deriv');showToast(`Derivado a ${derivTarget.n}`);
+  save();syncCorr(c);buildCorr();buildNotifs();closeM('mo-deriv');showToast(`Derivado a ${derivTarget.n}`);
 }
 
 function addCorr(){
   const desc=document.getElementById('nc-d').value.trim();if(!desc)return;
   const urg=document.querySelector('#nc-urg .uo.su')?.querySelector('.un2')?.textContent?.toUpperCase()||'NECESARIA';
-  corrs.unshift({id:'c'+Date.now(),task:desc,loc:document.getElementById('nc-l').value,urg,reporter:USERS[CU].name,assignee:document.getElementById('nc-a').value,status:'PENDIENTE',date:nf(),obs:'',bita:[],rBy:'',rWhen:'',rObs:'',rType:'',derivTo:'',derivM:'',sched:''});
-  save();buildCorr();buildHome();closeM('mo-newcorr');
+  const ncFoto=document.getElementById('nc-foto-preview');
+  const ncFotoData=ncFoto&&ncFoto.src&&ncFoto.src.startsWith('data:')?ncFoto.src:'';
+  corrs.unshift({id:'c'+Date.now(),task:desc,loc:document.getElementById('nc-l').value,urg,reporter:USERS[CU].name,assignee:document.getElementById('nc-a').value,status:'PENDIENTE',date:nf(),obs:'',bita:[],rBy:'',rWhen:'',rObs:'',rType:'',derivTo:'',derivM:'',sched:'',foto:ncFotoData,fotoRes:''});
+  save();syncCorr(corrs[0]);buildCorr();buildHome();closeM('mo-newcorr');
   document.getElementById('nc-d').value='';showToast('Correctiva registrada');
 }
 
@@ -1129,7 +1348,8 @@ function saveTemp(){
   const key=`s${curTS}_${dk()}`;
   if(!temps[key])temps[key]=[];
   temps[key].push({val:parseFloat(val),ctx,time,sk,by:USERS[CU].name});
-  save();buildTemp();closeM('mo-temp');showToast(`Sala ${curTS}: ${val}°C ✓`);
+  const newEntry=temps[key][temps[key].length-1];
+  save();syncTemp(curTS,newEntry);buildTemp();closeM('mo-temp');showToast(`Sala ${curTS}: ${newEntry.val}°C ✓`);
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1180,9 +1400,9 @@ function openCD(id){
   document.getElementById('cd-actions').innerHTML=acts;
   openM('mo-compradet');
 }
-function aprobC(id){const c=compras.find(x=>x.id===id);if(c){c.estado='Aprobada';c.aprobadaPor=USERS[CU].name;save();rCompras();openCD(id);showToast('Aprobada ✓');}}
-function rechC(id){const c=compras.find(x=>x.id===id);if(c){c.estado='Rechazada';save();rCompras();closeM('mo-compradet');showToast('Rechazada');}}
-function markReal(id){const c=compras.find(x=>x.id===id);if(c){c.realizada=true;c.estado='Realizada';save();rCompras();closeM('mo-compradet');showToast('Marcada realizada');}}
+function aprobC(id){const c=compras.find(x=>x.id===id);if(c){c.estado='Aprobada';c.aprobadaPor=USERS[CU].name;save();syncCompra(c);rCompras();openCD(id);showToast('Aprobada ✓');}}
+function rechC(id){const c=compras.find(x=>x.id===id);if(c){c.estado='Rechazada';save();syncCompra(c);rCompras();closeM('mo-compradet');showToast('Rechazada');}}
+function markReal(id){const c=compras.find(x=>x.id===id);if(c){c.realizada=true;c.estado='Realizada';save();syncCompra(c);rCompras();closeM('mo-compradet');showToast('Marcada realizada');}}
 function prevFoto(input,prevId){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{const img=document.getElementById(prevId);img.src=e.target.result;img.classList.add('on');};r.readAsDataURL(f);}
 function addCompra(){
   const desc=document.getElementById('cp-d').value.trim();if(!desc)return;
@@ -1191,7 +1411,7 @@ function addCompra(){
   const foto=document.getElementById('cp-fp').src||null;
   const realizada=document.getElementById('cp-r').value==='si';
   compras.unshift({id:'cp'+Date.now(),tipo,desc,prov:document.getElementById('cp-p').value||'Sin especificar',monto:document.getElementById('cp-m').value||'',aprov,realizada,fecha:nf().split(' ')[0],foto:foto&&foto.startsWith('data:')?foto:null,estado:realizada?'Realizada':tipo==='extra'?'Pendiente aprobación':'Pendiente',aprobadaPor:''});
-  save();buildCompras();closeM('mo-newcompra');
+  save();syncCompra(compras[0]);buildCompras();closeM('mo-newcompra');
   ['cp-d','cp-p','cp-m'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('cp-fp').classList.remove('on');showToast('Pedido registrado');
 }
@@ -1210,7 +1430,7 @@ function firmarTurno(){
   const hecho=document.getElementById('t-hecho').value.trim();
   if(!hecho){showToast('Describí lo que hiciste hoy');return;}
   const t={id:'t'+Date.now(),who:CU,name:USERS[CU].name,color:USERS[CU].color,bg:USERS[CU].bg,initials:USERS[CU].initials,ts:nf(),hecho,pend:document.getElementById('t-pend').value.trim(),urg:document.getElementById('t-urg').value.trim(),notas:document.getElementById('t-notas').value.trim(),estado:turnoEstado};
-  turnos.unshift(t);save();buildTurno();closeM('mo-turno');
+  turnos.unshift(t);save();syncTurno(t);buildTurno();closeM('mo-turno');
   ['t-hecho','t-pend','t-urg','t-notas'].forEach(id=>document.getElementById(id).value='');
   showToast('Turno firmado ✓');
 }
@@ -1553,18 +1773,18 @@ function saveTask(){
   };
   if(id){const p=prevs.find(x=>x.id===id);if(p)Object.assign(p,data);}
   else{prevs.push({id:'pt'+Date.now(),...data});}
-  save();buildAdmTaskList();rPrevList();closeM('mo-edittask');
+  save();syncPrevs();buildAdmTaskList();rPrevList();closeM('mo-edittask');
   const proximaLabel=proxima?` · Próxima: ${proxima}`:'';
   showToast(id?`Tarea actualizada ✓${proximaLabel}`:`Tarea agregada ✓${proximaLabel}`);
 }
-function delTask(id){if(confirm('¿Eliminar?')){prevs=prevs.filter(x=>x.id!==id);save();buildAdmTaskList();rPrevList();showToast('Eliminada');}}
+function delTask(id){if(confirm('¿Eliminar?')){prevs=prevs.filter(x=>x.id!==id);save();syncPrevs();buildAdmTaskList();rPrevList();showToast('Eliminada');}}
 function regAusWrapper(){closeM('mo-admin');setTimeout(()=>openM('mo-ausencia'),200);}
 function regAusencia(){
   const who=document.getElementById('aus-who').value;
   const motivo=document.getElementById('aus-motivo').value;
   const obs=document.getElementById('aus-obs').value;
-  ausencias[dk()]={who,motivo,obs};
-  save();buildHome();buildSemaforo();closeM('mo-ausencia');showToast('Ausencia registrada');
+  const ausDate=dk(); ausencias[ausDate]={who,motivo,obs};
+  save();syncAusencia(ausDate,{who,motivo,obs});buildHome();buildSemaforo();closeM('mo-ausencia');showToast('Ausencia registrada');
 }
 function resetAll(){if(confirm('¿Resetear checks del día?')){checks={};save();buildHome();buildPrev();closeM('mo-admin');showToast('Reseteado');}}
 function sU(el){el.closest('.ug2').querySelectorAll('.uo').forEach(o=>o.classList.remove('su'));el.classList.add('su');}
@@ -1584,6 +1804,8 @@ function saveExtra(){
   const entry={id:'ex'+Date.now(),who:CU,name:USERS[CU].name,initials:USERS[CU].initials,color:USERS[CU].color,bg:USERS[CU].bg,ts:nf(),dia:dk(),desc,cat,tiempo};
   extrasHoy.unshift(entry);
   localStorage.setItem('m4-extras',JSON.stringify(extrasHoy));
+  syncExtra(entry);
+  syncExtra(entry);
   closeM('mo-addextra');
   document.getElementById('ex-desc').value='';
   // Add visual card to my tasks list
