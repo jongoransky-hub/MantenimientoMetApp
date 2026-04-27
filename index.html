@@ -801,17 +801,21 @@ async function pullAll() {
 
     let changed = false;
 
+    // ── CHECKS: merge remote + local. Local always wins. Empty remote = keep local. ──
     if (remoteChecks !== null) {
       const ck = {};
       remoteChecks.forEach(r => {
         if (r.id) ck[r.id] = (r.done === true || r.done === 'TRUE' || r.done === 'true' || r.done === '1');
       });
-      Object.assign(ck, localCk);
+      Object.assign(ck, localCk); // local overwrites remote
       checks = ck;
       changed = true;
     }
+    // If server has no checks yet, keep all local checks
+    else { checks = localCk; }
 
-    if (remoteCorrs !== null) {
+    // ── CORRECTIVAS: only replace if server has actual data ──────────────────
+    if (remoteCorrs !== null && remoteCorrs.length > 0) {
       corrs = remoteCorrs.map(c => {
         if (typeof c.bita === 'string') { try { c.bita = JSON.parse(c.bita); } catch(e) { c.bita = []; } }
         if (!Array.isArray(c.bita)) c.bita = [];
@@ -820,26 +824,50 @@ async function pullAll() {
       changed = true;
     }
 
-    if (remoteTemps !== null) {
-      const tg = {};
+    // ── TEMPERATURAS: merge remote into local, fix date format from Sheets ───
+    if (remoteTemps !== null && remoteTemps.length > 0) {
+      const tg = { ...temps }; // start with local
       remoteTemps.forEach(r => {
         if (!r.sala) return;
-        const key = 's' + r.sala + '_' + r.date;
+        // Fix date: Sheets may return a Date object or ISO string like "2026-3-27T..."
+        let dateStr = String(r.date || '');
+        if (dateStr.includes('T')) dateStr = dateStr.split('T')[0]; // "2026-3-27"
+        // Normalize to dk() format: "2026-3-27" (year-month-day no leading zeros)
+        const dateParts = dateStr.split('-');
+        if (dateParts.length === 3) {
+          dateStr = dateParts[0] + '-' + (parseInt(dateParts[1])-1) + '-' + dateParts[2];
+        }
+        const key = 's' + r.sala + '_' + dateStr;
         if (!tg[key]) tg[key] = [];
-        tg[key].push({ val: parseFloat(r.val)||0, ctx: r.ctx, time: r.time, sk: parseInt(r.sk)||0, by: r.by });
+        // Only add if not already present (avoid duplicates)
+        const timeStr = String(r.time || '');
+        const exists = tg[key].some(e => e.time === timeStr && e.val === parseFloat(r.val));
+        if (!exists) {
+          tg[key].push({ val: parseFloat(r.val)||0, ctx: r.ctx||'', time: timeStr, sk: parseInt(r.sk)||0, by: String(r.by||'') });
+        }
       });
       Object.keys(tg).forEach(k => tg[k].sort((a,b) => a.sk - b.sk));
       temps = tg; changed = true;
     }
 
-    if (remoteCompras !== null) { compras = remoteCompras; changed = true; }
-    if (remoteTurnos  !== null) { turnos  = remoteTurnos;  changed = true; }
-    if (remoteObs     !== null) { obsArr  = remoteObs;     changed = true; }
-    if (remoteExtras  !== null) { extrasHoy = remoteExtras; changed = true; }
+    // ── COMPRAS/TURNOS/OBS: only replace if server has data ─────────────────
+    if (remoteCompras !== null && remoteCompras.length > 0) { compras = remoteCompras; changed = true; }
+    if (remoteTurnos  !== null && remoteTurnos.length  > 0) { turnos  = remoteTurnos;  changed = true; }
+    if (remoteObs     !== null && remoteObs.length     > 0) { obsArr  = remoteObs;     changed = true; }
+    if (remoteExtras  !== null && remoteExtras.length  > 0) { extrasHoy = remoteExtras; changed = true; }
 
-    if (remoteAus !== null) {
-      const ag = {};
-      remoteAus.forEach(r => { if (r.date) ag[r.date] = { who: r.who, motivo: r.motivo, obs: r.obs }; });
+    if (remoteAus !== null && remoteAus.length > 0) {
+      const ag = { ...ausencias }; // start with local
+      remoteAus.forEach(r => {
+        if (r.date) {
+          // Fix date key from Sheets
+          let d = String(r.date);
+          if (d.includes('T')) d = d.split('T')[0];
+          const p = d.split('-');
+          if (p.length === 3) d = p[0]+'-'+(parseInt(p[1])-1)+'-'+p[2];
+          ag[d] = { who: r.who, motivo: r.motivo, obs: r.obs };
+        }
+      });
       ausencias = ag; changed = true;
     }
 
@@ -956,8 +984,11 @@ function syncCheck(taskId, done) {
 function syncCorr(c) { apiPost('upsert', 'correctivas', { row: flattenCorr(c) }); }
 function syncDeleteCorr(id) { syncDelete('correctivas', id); }
 function syncTemp(sala, entry) {
-  const id = `s${sala}_${entry.time}_${entry.by}`.replace(/[^a-zA-Z0-9_]/g,'_');
-  apiPost('upsert', 'temperaturas', { row: { id, sala, ...entry, date: dk() } });
+  // Use a stable ID based on sala + date + time + user
+  const safeTime = String(entry.time).replace(/:/g,'-');
+  const safeBy = String(entry.by).split(' ')[0];
+  const id = `s${sala}_${dk()}_${safeTime}_${safeBy}`;
+  apiPost('upsert', 'temperaturas', { row: { id, sala, val: entry.val, ctx: entry.ctx, time: entry.time, sk: entry.sk, date: dk(), by: entry.by } });
 }
 function syncCompra(c) { apiPost('upsert', 'compras', { row: c }); }
 function syncTurno(t) { apiPost('upsert', 'turnos', { row: t }); }
