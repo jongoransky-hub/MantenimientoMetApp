@@ -723,16 +723,31 @@ async function apiGet(table) {
 async function apiPost(action, table, payload) {
   if (!API_URL) return null;
   try {
-    // Use GET with encoded payload — works cross-origin with Apps Script
-    const encoded = encodeURIComponent(JSON.stringify({ action, table, ...payload }));
-    const url = `${API_URL}?write=${encoded}&t=${Date.now()}`;
-    const res = await fetch(url, { redirect: 'follow' });
+    // Encode as URL param — Apps Script handles GET cross-origin reliably
+    const body = JSON.stringify({ action, table, ...payload });
+    const encoded = encodeURIComponent(body);
+    // Check URL length — split if too long (Apps Script limit ~2000 chars)
+    const url = API_URL + '?write=' + encoded + '&t=' + Date.now();
+    if (url.length > 8000) {
+      // For large payloads (like photos), skip sync — too big for GET
+      console.warn('Payload too large for sync, skipping:', table, action);
+      return { skipped: true };
+    }
+    const res = await fetch(url, { redirect: 'follow', mode: 'cors' });
     const text = await res.text();
     let json;
     try { json = JSON.parse(text); }
-    catch(e) { console.warn('apiPost non-JSON:', text.slice(0,200)); SYNC_QUEUE.push({action,table,payload}); return null; }
-    if (!json.ok) console.warn('apiPost error:', json.error);
-    else console.log('✓ Synced to Sheets:', action, table);
+    catch(e) {
+      // Apps Script sometimes returns HTML on error — log and queue
+      console.warn('apiPost got non-JSON (check Apps Script deployment):', text.slice(0, 300));
+      SYNC_QUEUE.push({ action, table, payload, ts: Date.now() });
+      return null;
+    }
+    if (json.ok) {
+      console.log('✓ Sheets updated:', action, table);
+    } else {
+      console.warn('✗ Sheets error:', json.error);
+    }
     return json.ok ? json.data : null;
   } catch(e) {
     console.warn('apiPost failed:', e.message);
@@ -1547,7 +1562,8 @@ function buildObs(){
 function showPersonTasks(personKey){
   const u=USERS[personKey];
   const t=dk();
-  const myTasks=prevs.filter(p=>(p.resp===personKey||p.resp==='ambos')&&isDueToday(p));
+  // Daily tasks + weekly tasks for this person
+  const myTasks=prevs.filter(p=>(p.resp===personKey||p.resp==='ambos')&&(p.period==='Diaria'||p.period==='Semanal'));
   const done=myTasks.filter(p=>checks[t+p.id]);
   const pending=myTasks.filter(p=>!checks[t+p.id]);
   const extras=JSON.parse(localStorage.getItem('m4-extras')||'[]').filter(e=>e.who===personKey&&e.dia===t);
@@ -1599,10 +1615,14 @@ function getSemaforoData(){
   const t=dk();
   const res={};
   ['david','andres'].forEach(k=>{
-    const myT=prevs.filter(p=>(p.resp===k||p.resp==='ambos')&&isDueToday(p));
-    const done=myT.filter(p=>checks[t+p.id]).length;
-    const pct=myT.length?Math.round(done/myT.length*100):0;
-    res[k]={done,total:myT.length,pct};
+    // Daily tasks = primary metric for today's coverage
+    const dailyT=prevs.filter(p=>(p.resp===k||p.resp==='ambos')&&p.period==='Diaria');
+    const dailyDone=dailyT.filter(p=>checks[t+p.id]).length;
+    const pct=dailyT.length?Math.round(dailyDone/dailyT.length*100):0;
+    // Weekly tasks = secondary metric
+    const weeklyT=prevs.filter(p=>(p.resp===k||p.resp==='ambos')&&p.period==='Semanal');
+    const weeklyDone=weeklyT.filter(p=>checks[t+p.id]).length;
+    res[k]={done:dailyDone,total:dailyT.length,pct,weeklyDone,weeklyTotal:weeklyT.length};
   });
   return res;
 }
@@ -1914,6 +1934,23 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 // ════════════════════════════════════════════════════════════════════════════
 // BOOT
 // ════════════════════════════════════════════════════════════════════════════
+// Debug: test Sheets connection (call from browser console: testSheets())
+async function testSheets() {
+  if (!API_URL) { alert('API_URL no configurada'); return; }
+  try {
+    showToast('Probando conexión con Sheets…');
+    const ping = await apiGet('_ping_test_');
+    const write = await apiPost('upsert', 'checks', {
+      row: { id: 'conexion_test', taskId: 'test', userId: 'system', date: 'test', done: 'true', ts: new Date().toISOString() }
+    });
+    const msg = write !== null ? '✓ Sheets conectado! Revisá la pestaña checks.' : '✗ Write falló — revisá el Apps Script deployment';
+    alert(msg);
+    showToast(msg);
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
 // Boot — ensure DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', buildLogin);
