@@ -839,35 +839,36 @@ async function pullAll() {
 
     // ── TEMPERATURAS: merge remote into local, fix date format from Sheets ───
     if (remoteTemps !== null && remoteTemps.length > 0) {
-      const tg = { ...temps }; // start with local
+      // DEDUP: use Sheets row 'id' as unique key per entry
+      const seenIds = new Set();
+      const tg = {};
+      // First pass: load all remote entries (Sheets is source of truth for past data)
       remoteTemps.forEach(r => {
         if (!r.sala) return;
-        // Fix date from Sheets: may be ISO string or Date serial
         let dateStr = String(r.date || '');
-        if (dateStr.includes('T')) dateStr = dateStr.split('T')[0]; // strip time
-        // dateStr is now "2026-4-27" — matches dk() format after fix
+        if (dateStr.includes('T')) dateStr = dateStr.split('T')[0];
+        let skVal = parseInt(r.sk)||0;
+        let cleanTime = String(r.time||'');
+        if (!cleanTime.match(/^\d{1,2}:\d{2}$/)) {
+          const h = Math.floor(skVal/60), m = skVal%60;
+          cleanTime = String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+        }
         const key = 's' + r.sala + '_' + dateStr;
         if (!tg[key]) tg[key] = [];
-        // Only add if not already present (avoid duplicates)
-        const timeStr = String(r.time || '');
-        const exists = tg[key].some(e => e.time === timeStr && e.val === parseFloat(r.val));
-        if (!exists) {
-          // Clean time: if Sheets returned a full date string, extract HH:MM
-        let cleanTime = timeStr;
-        if (cleanTime.includes('T') || cleanTime.includes('1899')) {
-          // It's a date serial — extract time from sk (minutes from midnight)
-          const skVal = parseInt(r.sk)||0;
-          const h = Math.floor(skVal/60);
-          const m = skVal % 60;
-          cleanTime = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-        }
-        tg[key].push({ val: parseFloat(r.val)||0, ctx: r.ctx||'', time: cleanTime, sk: parseInt(r.sk)||0, by: String(r.by||'') });
-        }
+        const rid = String(r.id||'');
+        if (rid && seenIds.has(rid)) return; // skip duplicate Sheets rows
+        if (rid) seenIds.add(rid);
+        tg[key].push({ val: parseFloat(r.val)||0, ctx: r.ctx||'', time: cleanTime, sk: skVal, by: String(r.by||''), _id: rid });
+      });
+      // Second pass: add local entries not yet in Sheets (just recorded)
+      Object.keys(temps).forEach(key => {
+        if (!tg[key]) tg[key] = [];
+        temps[key].forEach(le => {
+          const inRemote = tg[key].some(re => re.sk === le.sk && Math.abs(re.val-(le.val||0)) < 0.5);
+          if (!inRemote) tg[key].push(le);
+        });
       });
       Object.keys(tg).forEach(k => tg[k].sort((a,b) => a.sk - b.sk));
-      // Safety: ensure today's local temps are never lost
-      const todayKeys = Object.keys(temps).filter(k => k.endsWith('_' + dk()));
-      todayKeys.forEach(k => { if (!tg[k] || tg[k].length < temps[k].length) tg[k] = temps[k]; });
       temps = tg; changed = true;
     }
 
@@ -890,7 +891,13 @@ async function pullAll() {
       ausencias = ag; changed = true;
     }
 
-    if (remotePrevs !== null && remotePrevs.length > 0) { prevs = remotePrevs; changed = true; }
+    if (remotePrevs !== null && remotePrevs.length > 0) {
+      prevs = remotePrevs; changed = true;
+    } else if (remotePrevs !== null && remotePrevs.length === 0 && prevs.length > 0) {
+      // Sheets preventivas is empty — push local prevs up (first time or after reset)
+      console.log('Preventivas sheet empty — pushing local tasks to Sheets:', prevs.length);
+      apiPost('replaceAll', 'preventivas', { rows: prevs });
+    }
 
     try { localStorage.setItem('m4-checks',  JSON.stringify(checks));   } catch(e) {}
     try { localStorage.setItem('m4-corrs',   JSON.stringify(corrs));    } catch(e) {}
@@ -1150,7 +1157,10 @@ function adaptUI(){
   if(isSemi()&&!isAdmin()){document.getElementById('btn-new-corr').style.display='none';}
   // hide turno form for non-exec
   // hide exec task section for non-exec in home
-  if(!isExec()&&!isAdmin()){document.getElementById('hmytasks-wrap').style.display='none';}
+  // Jon/admin/semiadmin: hide personal task section, show teatro overview
+  if(!isExec()){
+    document.getElementById('hmytasks-wrap').style.display='none';
+  }
   // show dashboard nav only for semiadmin+
   if(isSemi()||isAdmin()){
     const bn=document.getElementById('botnav');
@@ -1171,8 +1181,11 @@ function buildHome(){
   // For admins/semiadmins: show combined David+Andrés task count
   let allT, doneCount;
   if(!myKey){
-    // Admin view: all tasks for both executors
-    allT=prevs.filter(p=>p.period==='Diaria');
+    // Admin/semiadmin: see FULL TEATRO — all tasks from both David and Andrés
+    // Unique tasks (avoid counting shared tasks twice)
+    const davidT=prevs.filter(p=>(p.resp==='david'||p.resp==='ambos')&&p.period==='Diaria');
+    const andresT=prevs.filter(p=>p.resp==='andres'&&p.period==='Diaria');
+    allT=[...davidT,...andresT];
     doneCount=allT.filter(p=>checks[dk()+p.id]).length;
   } else {
     const myT=prevs.filter(p=>p.resp===myKey&&p.period==='Diaria');
@@ -1206,8 +1219,17 @@ function buildHome(){
     }
   }
   document.getElementById('hrecord').innerHTML=recHTML;
+  // Admin: per-person breakdown in stat card
+  let statLine2='';
+  if(!myKey){
+    const dD=prevs.filter(p=>(p.resp==='david'||p.resp==='ambos')&&p.period==='Diaria'&&checks[dk()+p.id]).length;
+    const aD=prevs.filter(p=>(p.resp==='andres'||p.resp==='ambos')&&p.period==='Diaria'&&checks[dk()+p.id]).length;
+    const dT=prevs.filter(p=>(p.resp==='david'||p.resp==='ambos')&&p.period==='Diaria').length;
+    const aT=prevs.filter(p=>(p.resp==='andres'||p.resp==='ambos')&&p.period==='Diaria').length;
+    statLine2=`<div style="font-size:9px;color:#9898c8;line-height:1.4;">David ${dD}/${dT} · Andrés ${aD}/${aT}</div>`;
+  }
   document.getElementById('hstats').innerHTML=`
-    <div class="sb" onclick="goSc('prev',document.querySelectorAll('.nb')[1])"><div class="sn" style="color:var(--ac2);">${allT.length}</div><div class="sl" style="color:var(--t1);">Tareas hoy</div></div>
+    <div class="sb" onclick="goSc('prev',document.querySelectorAll('.nb')[1])"><div class="sn" style="color:var(--ac2);">${allT.length}</div><div class="sl" style="color:var(--t1);">Tareas hoy</div>${statLine2||''}</div>
     <div class="sb" onclick="goCorrFilter('URGENTE')" style="${urgC>0?'border-color:var(--rbd);':''}">
       <div class="sn" style="color:var(--red);">${urgC}</div>
       <div class="sl" style="color:${urgC>0?'#ffffff':'var(--t2)'};">Urgentes</div>
@@ -1258,7 +1280,7 @@ function buildHome(){
   // semaforo inline unificado en home
   const smData=getSemaforoData();
   document.getElementById('hsemiforo-mini').innerHTML=`
-    <div class="sh" style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;"><span>Semáforo del día</span><span style="font-size:9px;color:var(--acc);cursor:pointer;" onclick="goSc('semaforo',document.querySelectorAll('.nb')[7])">ver completo →</span></div>
+    <div class="sh" style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;"><span>${!myKey?'Estado del teatro hoy':'Semáforo del día'}</span><span style="font-size:9px;color:var(--acc);cursor:pointer;" onclick="goSc('semaforo',document.querySelectorAll('.nb')[7])">ver completo →</span></div>
     <div style="display:flex;gap:6px;margin-bottom:6px;">
       ${['david','andres'].map(k=>{const u=USERS[k];const d=smData[k];const absent2=ausencias[dk()]&&(ausencias[dk()].who===k||ausencias[dk()].who==='ambos');
         const col=absent2?'var(--t3)':d.pct>=80?'var(--grn)':d.pct>=50?'var(--yel)':'var(--red)';return `<div style="flex:1;background:var(--s1);border:0.5px solid ${absent2?'var(--b2)':'var(--b1)'};border-radius:10px;padding:9px 8px;cursor:pointer;${absent2?'opacity:0.5;':''}" onclick="goSc('semaforo',document.querySelectorAll('.nb')[7])"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11px;color:var(--t1);">${u.name.split(' ')[0]}</span><span style="font-size:16px;font-weight:600;color:${col};">${d.pct}%</span></div><div style="height:3px;background:var(--s3);border-radius:2px;margin-top:5px;"><div style="height:3px;border-radius:2px;background:${col};width:${d.pct}%;transition:width 0.4s;"></div></div><div style="font-size:9px;color:#9898c8;margin-top:3px;">${d.done}/${d.total} diarias</div></div>`;}).join('')}
@@ -1308,7 +1330,16 @@ function tCard(p){
   const isOverdue=p.proxima&&new Date(p.proxima)<new Date()&&!done;
   const isOvd=p.proxima&&new Date(p.proxima)<new Date()&&!done;
   const pLabel=p.period==='fecha-especifica'?`📅 ${p.fechaEsp||'fecha'}`:p.period;
-  return `<div class="card ${done?'dim':''}${isOvd?' lu':''}"><div class="tr2"><div class="ck ${done?'on':''}" data-id="${p.id}" onclick="togTask('${p.id}',this)"><svg viewBox="0 0 12 10"><polyline points="1,5 4,8 11,1"/></svg></div><div style="flex:1;min-width:0;"><div class="tk ${done?'st':''}">${p.task}</div><div class="tm">${p.sector}${p.day?' · '+p.day:''}</div><div class="tgs"><span class="bdg ${bcls}">${pLabel}</span>${p.resp==='ambos'?'<span class="bdg bb2">Compartida</span>':''}${isOvd?'<span class="bdg br">Vencida</span>':''}</div>${p.notas&&!done?`<div class="tm" style="margin-top:3px;color:var(--ac2);font-size:9px;">📌 ${p.notas.slice(0,55)}</div>`:''}</div></div></div>`;
+  let proximaLabel='';
+  if(p.proxima&&!done){
+    const pp=p.proxima.split('-');
+    const proximaFmt=pp.length===3?`${pp[2]}/${pp[1]}`:p.proxima;
+    const daysLeft=Math.ceil((new Date(p.proxima+'T12:00:00')-new Date())/(1000*60*60*24));
+    const dcol=daysLeft<=0?'var(--red)':daysLeft<=3?'var(--ora)':daysLeft<=7?'var(--yel)':'var(--t2)';
+    const dtxt=daysLeft===0?'hoy':daysLeft===1?'mañana':daysLeft<0?`venció hace ${Math.abs(daysLeft)}d`:`en ${daysLeft}d`;
+    proximaLabel=`<div style="font-size:9px;color:${dcol};margin-top:2px;">📅 Vence ${proximaFmt} · <strong>${dtxt}</strong></div>`;
+  }
+  return `<div class="card ${done?'dim':''}${isOvd?' lu':''}"><div class="tr2"><div class="ck ${done?'on':''}" data-id="${p.id}" onclick="togTask('${p.id}',this)"><svg viewBox="0 0 12 10"><polyline points="1,5 4,8 11,1"/></svg></div><div style="flex:1;min-width:0;"><div class="tk ${done?'st':''}">${p.task}</div><div class="tm">${p.sector}${p.day?' · '+p.day:''}</div><div class="tgs"><span class="bdg ${bcls}">${pLabel}</span>${p.resp==='ambos'?'<span class="bdg bb2">Compartida</span>':''}${isOvd?'<span class="bdg br">Vencida</span>':''}</div>${proximaLabel}${p.notas&&!done?`<div class="tm" style="margin-top:2px;color:var(--ac2);font-size:9px;">📌 ${p.notas.slice(0,55)}</div>`:''}</div></div></div>`;
 }
 function togTask(id,el){
   if(!isExec()&&!isAdmin())return;
@@ -1514,9 +1545,25 @@ function addCorr(){
 function tcol(v){if(v>=28)return '#ff5566';if(v>=24)return '#ff9830';if(v>=20)return '#28d464';if(v>=16)return '#74b0ff';return '#a290f8';}
 function buildTemp(){checkTempAlerts();rTS(1);rTS(2);buildTH();}
 function getTodayTemps(n){
-  // Get ALL entries for today for this sala, any user
-  const key=`s${n}_${dk()}`;
-  return (temps[key]||[]).slice().sort((a,b)=>a.sk-b.sk);
+  // Get ALL entries for today, any user
+  // Check multiple possible date key formats (accounting for sync variations)
+  const today = dk(); // e.g. "2026-4-27"
+  const todayDate = new Date();
+  // Also check ISO format variations that Sheets might return
+  const possibleKeys = [
+    `s${n}_${today}`,
+    `s${n}_${todayDate.getFullYear()}-${todayDate.getMonth()}-${todayDate.getDate()}`, // old wrong format
+  ];
+  let allEntries = [];
+  const seen = new Set();
+  possibleKeys.forEach(key => {
+    (temps[key]||[]).forEach(e => {
+      // Dedup by time+val+sala to prevent duplicates from sync
+      const sig = `${e.time}_${e.val}_${e.by}`;
+      if (!seen.has(sig)) { seen.add(sig); allEntries.push(e); }
+    });
+  });
+  return allEntries.sort((a,b)=>a.sk-b.sk);
 }
 function rTS(n){
   const entries=getTodayTemps(n);
@@ -1818,7 +1865,7 @@ function buildSemaforo(){
               </div>
             </div>
             <div class="smf-bg"><div class="smf-bar" style="width:${d.pct}%;background:${col};"></div></div>
-            <div style="font-size:9px;color:#9898c8;margin-top:2px;">${d.done} hechas · ${d.total-d.done} pendientes · tap para ver detalle</div>
+            <div style="font-size:9px;color:#9898c8;margin-top:2px;">${d.done}/${d.total} diarias${(()=>{const u=corrs.filter(c=>c.urg==='URGENTE'&&c.status!=='RESUELTO'&&(c.assignee===USERS[k].name||c.assignee==='Ambos')).length;return u>0?` · <span style="color:var(--red);font-weight:600;">⚠ ${u} urgente${u>1?'s':''}</span>`:'';})()}</div>
           </div>
         </div>`;
       }).join('')}
