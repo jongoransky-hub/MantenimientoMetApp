@@ -1070,6 +1070,12 @@ function syncTemp(sala, entry) {
   const id = `s${sala}_${dk()}_${safeTime}_${safeBy}`;
   apiPost('upsert', 'temperaturas', { row: { id, sala, val: entry.val, ctx: entry.ctx, time: entry.time, sk: entry.sk, date: dk(), by: entry.by } });
 }
+function formatMonto(m){
+  if(!m&&m!==0)return 'Sin especificar';
+  const n=parseFloat(String(m).replace(/[^0-9.]/g,''));
+  if(isNaN(n))return String(m);
+  return '$ '+n.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:2});
+}
 function syncCompra(c) { apiPost('upsert', 'compras', { row: c }); }
 function syncTurno(t) { apiPost('upsert', 'turnos', { row: t }); }
 function syncObs(o) { apiPost('upsert', 'observaciones', { row: o }); }
@@ -1234,7 +1240,7 @@ function buildHome(){
       <div class="sn" style="color:var(--red);">${urgC}</div>
       <div class="sl" style="color:${urgC>0?'#ffffff':'var(--t2)'};">Urgentes</div>
     </div>
-    <div class="sb" onclick="toggleWeekly&&toggleWeekly()"><div class="sn" style="color:var(--ora);">${pendC}</div><div class="sl" style="color:var(--t1);">Pendientes hoy</div></div>
+    <div class="sb" onclick="showPendientesHoy()"><div class="sn" style="color:var(--ora);">${pendC}</div><div class="sl" style="color:var(--t1);">Pendientes hoy</div></div>
     <div class="sb" onclick="showCompletadas()"><div class="sn" style="color:var(--grn);">${doneCount}</div><div class="sl" style="color:var(--t1);">Completadas</div></div>`;
 
   let alertHTML='';
@@ -1342,7 +1348,7 @@ function tCard(p){
   return `<div class="card ${done?'dim':''}${isOvd?' lu':''}"><div class="tr2"><div class="ck ${done?'on':''}" data-id="${p.id}" onclick="togTask('${p.id}',this)"><svg viewBox="0 0 12 10"><polyline points="1,5 4,8 11,1"/></svg></div><div style="flex:1;min-width:0;"><div class="tk ${done?'st':''}">${p.task}</div><div class="tm">${p.sector}${p.day?' · '+p.day:''}</div><div class="tgs"><span class="bdg ${bcls}">${pLabel}</span>${p.resp==='ambos'?'<span class="bdg bb2">Compartida</span>':''}${isOvd?'<span class="bdg br">Vencida</span>':''}</div>${proximaLabel}${p.notas&&!done?`<div class="tm" style="margin-top:2px;color:var(--ac2);font-size:9px;">📌 ${p.notas.slice(0,55)}</div>`:''}</div></div></div>`;
 }
 function togTask(id,el){
-  if(!isExec()&&!isAdmin())return;
+  if(!isExec()&&!isAdmin()&&!isSemi())return;
   const key=dk()+id;checks[key]=!checks[key];save();
   const card=el.closest('.card');
   el.classList.toggle('on',checks[key]);
@@ -1407,12 +1413,12 @@ function tCardAdmin(p){
     <div class="tr2">
       <div class="ck ${done?'on':''}" data-id="${p.id}" onclick="togTask('${p.id}',this)"><svg viewBox="0 0 12 10"><polyline points="1,5 4,8 11,1"/></svg></div>
       <div style="flex:1;min-width:0;">
-        <div class="tk ${done?'st':''}">${p.task}</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div class="tm">${p.sector}</div>
-          <div style="font-size:9px;font-weight:600;color:${respColor};">${respLabel}</div>
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+          <div class="tk ${done?'st':''}">${p.task}</div>
+          <span style="font-size:9px;font-weight:600;color:${respColor};white-space:nowrap;">${respLabel}</span>
         </div>
-        <div class="tgs"><span class="bdg ${bcls}">${p.period}</span>${p.resp==='ambos'?'<span class="bdg bb2">Compartida</span>':''}</div>
+        <div class="tm">${p.sector}</div>
+        <div class="tgs"><span class="bdg ${bcls}">${p.period}</span></div>
         ${proximaLabel}
       </div>
     </div>
@@ -1459,7 +1465,7 @@ function buildCorr(){
   else if(corrFilter!=='TODOS')list=list.filter(c=>c.status===corrFilter);
   const active=list.filter(c=>c.status!=='RESUELTO');
   const resolved=list.filter(c=>c.status==='RESUELTO');
-  const canAct=isExec()||isAdmin();
+  const canAct=isExec()||isAdmin()||isSemi();
   let html='';
   active.forEach(c=>{
     const u=urgMap[c.urg]||{cls:'',badge:'bgr'};
@@ -1708,7 +1714,7 @@ function openCD(id){
   document.getElementById('cd-body').innerHTML=`
     <div class="tm"><strong style="color:var(--t1);">Tipo:</strong> ${c.tipo==='extra'?'Extraordinaria':'Regular mensual'}</div>
     <div class="tm"><strong style="color:var(--t1);">Proveedor:</strong> ${c.prov}</div>
-    <div class="tm"><strong style="color:var(--t1);">Monto:</strong> ${c.monto||'No especificado'}</div>
+    <div class="tm"><strong style="color:var(--t1);">Monto:</strong> ${formatMonto(c.monto)}</div>
     <div class="tm"><strong style="color:var(--t1);">Fecha:</strong> ${(()=>{const d=String(c.fecha||'');if(d.includes('T')){const p=d.split('T')[0].split('-');return `${parseInt(p[2])}/${parseInt(p[1])}/${p[0]}`;}return d;})()}</div>
     <div class="tm"><strong style="color:var(--t1);">Estado:</strong> <span class="bdg ${c.realizada?'bg2':'by'}">${c.estado}</span></div>
     ${c.aprov?.length?`<div class="tm"><strong style="color:var(--t1);">Aprobación:</strong> ${c.aprov.join(', ')}</div>`:''}
@@ -1759,11 +1765,25 @@ function firmarTurno(){
 }
 function buildTurno(){
   const canSign=isExec()||isAdmin();
-  document.getElementById('turno-form-wrap').innerHTML=canSign?`
-    <div style="background:var(--s2);border:0.5px solid var(--b2);border-radius:11px;padding:10px 11px;margin-bottom:10px;cursor:pointer;" onclick="openM('mo-turno')">
-      <div style="font-size:12px;font-weight:500;color:var(--t1);">✎ Firmar turno de hoy</div>
-      <div style="font-size:10px;color:#9898c8;margin-top:2px;">Resumen de lo que hiciste, pendientes y urgencias para mañana</div>
-    </div>`:'';
+  let signBlock='';
+  if(canSign){
+    // Check if signed in last 4 hours
+    const myTurnos=turnos.filter(t=>t.who===CU).sort((a,b)=>String(b.id).localeCompare(String(a.id)));
+    const lastSign=myTurnos[0];
+    const lastSignTime=lastSign?parseInt(String(lastSign.id||'0').replace('t',''))||0:0;
+    const hoursSince=(Date.now()-lastSignTime)/3600000;
+    if(lastSignTime>0&&hoursSince<4){
+      const minsAgo=Math.floor(hoursSince*60);
+      const hrsLeft=Math.ceil(4-hoursSince);
+      signBlock=`<div style="background:var(--s2);border:0.5px solid var(--b2);border-radius:11px;padding:10px 11px;margin-bottom:10px;font-size:11px;color:#9898c8;text-align:center;">Ya firmaste hace ${minsAgo} min · próxima firma en ${hrsLeft}h</div>`;
+    } else {
+      signBlock=`<div style="background:var(--s2);border:0.5px solid var(--b2);border-radius:11px;padding:10px 11px;margin-bottom:10px;cursor:pointer;" onclick="openTurno()">
+        <div style="font-size:12px;font-weight:500;color:var(--t1);">✎ Firmar turno de hoy</div>
+        <div style="font-size:10px;color:#9898c8;margin-top:2px;">Resumen de lo que hiciste, pendientes y urgencias para mañana</div>
+      </div>`;
+    }
+  }
+  document.getElementById('turno-form-wrap').innerHTML=signBlock;
   document.getElementById('turno-list').innerHTML=turnos.slice(0,10).map(t=>{
     const estadoCols={bien:'var(--grn)',regular:'var(--yel)',mal:'var(--red)'};
     const estadoLabel={bien:'Bien',regular:'Regular',mal:'Con problemas'};
@@ -1780,6 +1800,24 @@ function buildTurno(){
     </div>`;
   }).join('')||'<div style="color:#b0b0d0;font-size:11px;">Sin firmas aún</div>';
 }
+
+function openTurno(){
+  // Pre-fill with done/pending tasks
+  if(isExec()){
+    const myKey=CU;
+    const today=dk();
+    const doneTasks=prevs.filter(p=>(p.resp===myKey||p.resp==='ambos')&&p.period==='Diaria'&&checks[today+p.id]);
+    const pendTasks=prevs.filter(p=>(p.resp===myKey||p.resp==='ambos')&&p.period==='Diaria'&&!checks[today+p.id]);
+    const hechoEl=document.getElementById('tu-h');
+    const pendEl=document.getElementById('tu-p');
+    if(hechoEl&&!hechoEl.value&&doneTasks.length)
+      hechoEl.value=doneTasks.map(p=>'hecho: '+p.task).join('\n');
+    if(pendEl&&!pendEl.value&&pendTasks.length)
+      pendEl.value=pendTasks.map(p=>'pendiente: '+p.task).join('\n');
+  }
+  openM('mo-turno');
+}
+
 
 // ════════════════════════════════════════════════════════════════════════════
 // OBSERVACIONES
@@ -2192,6 +2230,22 @@ function sU(el){el.closest('.ug2').querySelectorAll('.uo').forEach(o=>o.classLis
 let extrasHoy = JSON.parse(localStorage.getItem('m4-extras')||'[]');
 
 
+
+function showPendientesHoy(){
+  // Navigate to tasks and highlight pending ones
+  const myKey=['david','andres'].includes(CU)?CU:null;
+  const pending=myKey
+    ? prevs.filter(p=>(p.resp===myKey||p.resp==='ambos')&&p.period==='Diaria'&&!checks[dk()+p.id])
+    : prevs.filter(p=>p.period==='Diaria'&&!checks[dk()+p.id]);
+  if(!pending.length){showToast('¡No hay pendientes hoy!');return;}
+  // Go to tasks screen
+  const nb=document.querySelectorAll('.nb');
+  let tareasBtn=null;
+  nb.forEach(b=>{if(b.querySelector('.nl')?.textContent==='Tareas')tareasBtn=b;});
+  goSc('prev',tareasBtn||nb[1]);
+  // Show a temp filter message
+  showToast(`${pending.length} tarea${pending.length>1?'s':''} pendiente${pending.length>1?'s':''} hoy`);
+}
 function toggleWeekly(){
   const list=document.getElementById('weekly-list');
   const chev=document.getElementById('weekly-chevron');
