@@ -888,7 +888,10 @@ async function pullAll() {
     // ── COMPRAS/TURNOS/OBS: only replace if server has data ─────────────────
     if (remoteCompras !== null && remoteCompras.length > 0) { compras = remoteCompras; changed = true; }
     if (remoteTurnos  !== null && remoteTurnos.length  > 0) { turnos  = remoteTurnos;  changed = true; }
-    if (remoteObs     !== null && remoteObs.length     > 0) { obsArr  = remoteObs;     changed = true; }
+    if (remoteObs !== null && remoteObs.length > 0) {
+      obsArr = remoteObs.map(o => ({...o, seg: o.seg === true || o.seg === 'true' || o.seg === 'TRUE'}));
+      changed = true;
+    }
     if (remoteExtras  !== null && remoteExtras.length  > 0) { extrasHoy = remoteExtras; changed = true; }
 
     if (remoteAus !== null && remoteAus.length > 0) {
@@ -1091,7 +1094,10 @@ function formatMonto(m){
 }
 function syncCompra(c) { apiPost('upsert', 'compras', { row: c }); }
 function syncTurno(t) { apiPost('upsert', 'turnos', { row: t }); }
-function syncObs(o) { apiPost('upsert', 'observaciones', { row: o }); }
+function syncObs(o) {
+  const row={id:o.id,who:o.who,name:o.name,color:o.color,initials:o.initials,ts:o.ts,cat:o.cat,text:o.text,seg:o.seg?'true':'false'};
+  apiPost('upsert','observaciones',{row});
+}
 function syncAusencia(date, data) { apiPost('upsert', 'ausencias', { row: { id: date, date, ...data } }); }
 function syncExtra(e) { apiPost('upsert', 'extras', { row: e }); }
 function syncPrevs() { apiPost('replaceAll', 'preventivas', { rows: prevs }); }
@@ -1839,8 +1845,16 @@ function addObs(){
   const text=document.getElementById('obs-t').value.trim();if(!text)return;
   const cat=document.getElementById('obs-cat').value;
   const seg=document.getElementById('obs-seg').value==='si';
-  obsArr.unshift({id:'o'+Date.now(),who:CU,name:USERS[CU].name,color:USERS[CU].color,initials:USERS[CU].initials,ts:nf(),cat,text,seg});
-  save();buildObs();closeM('mo-obs');document.getElementById('obs-t').value='';showToast('Nota guardada');
+  const newObs={id:'o'+Date.now(),who:CU,name:USERS[CU].name,color:USERS[CU].color,initials:USERS[CU].initials,ts:nf(),cat,text,seg:seg?'true':'false'};
+  obsArr.unshift(newObs);
+  save();
+  // Sync to Sheets — strip color field if too long, keep essentials
+  const obsRow={id:newObs.id,who:newObs.who,name:newObs.name,color:newObs.color,initials:newObs.initials,ts:newObs.ts,cat:newObs.cat,text:newObs.text,seg:newObs.seg};
+  apiPost('upsert','observaciones',{row:obsRow}).then(r=>{
+    if(r!==null)console.log('Obs synced:',newObs.id);
+    else console.warn('Obs queued for retry');
+  });
+  buildObs();closeM('mo-obs');document.getElementById('obs-t').value='';showToast('Nota guardada');
 }
 function buildObs(){
   const canAdd=true;
