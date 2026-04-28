@@ -1374,21 +1374,69 @@ function attachCks(){
 // PREVENTIVAS
 // ════════════════════════════════════════════════════════════════════════════
 function buildPrev(){
-  const myKey=['david','andres'].includes(CU)?CU:'david';prevView=myKey;
-  // Tabs: David | Andrés (no separate Compartidas — shared appear in both)
-  document.getElementById('prev-tog').innerHTML=[{k:'david',l:'David'},{k:'andres',l:'Andrés'}]
-    .map(v=>`<button class="to ${v.k===myKey?'st':''}" onclick="sPrev('${v.k}',this)">${v.l}</button>`).join('');
+  if(isExec()){
+    // Executors: see their own tasks + shared, split by person
+    const myKey=['david','andres'].includes(CU)?CU:'david';prevView=myKey;
+    document.getElementById('prev-tog').innerHTML=[{k:'david',l:'David'},{k:'andres',l:'Andrés'}]
+      .map(v=>`<button class="to ${v.k===myKey?'st':''}" onclick="sPrev('${v.k}',this)">${v.l}</button>`).join('');
+  } else {
+    // Reporters/admins: see ALL tasks together, no filter tabs
+    prevView='todos';
+    document.getElementById('prev-tog').innerHTML='<div style="font-size:10px;color:#9090c0;padding:3px 0;">Todas las tareas · ordenadas por período</div>';
+  }
   rPrevList();
 }
 function sPrev(k,btn){prevView=k;document.querySelectorAll('#prev-tog .to').forEach(b=>b.classList.remove('st'));btn.classList.add('st');rPrevList();}
+function tCardAdmin(p){
+  // Task card for reporters/admins — shows responsible name, read-only (no checkbox action)
+  const t=dk();
+  const done=checks[t+p.id]||false;
+  const bcls={'Diaria':'bg','Semanal':'bb','Quincenal':'bp','Mensual':'bp','Bimensual':'bo','Trimestral':'bo','Cuatrimestral':'bo','Semestral':'br','Anual':'br'}[p.period]||'bb';
+  const respLabel=p.resp==='ambos'?'David + Andrés':p.resp==='david'?'David':'Andrés';
+  const respColor=p.resp==='david'?'#8aaaff':p.resp==='andres'?'#ff9830':'#28d464';
+  let proximaLabel='';
+  if(p.proxima&&!done){
+    const pp=p.proxima.split('-');
+    const pFmt=pp.length===3?`${pp[2]}/${pp[1]}`:p.proxima;
+    const dL=Math.ceil((new Date(p.proxima+'T12:00:00')-new Date())/(1000*60*60*24));
+    const dc=dL<=0?'var(--red)':dL<=3?'var(--ora)':dL<=7?'var(--yel)':'var(--t2)';
+    const dt=dL===0?'hoy':dL===1?'mañana':dL<0?`vencida`:(`en ${dL}d`);
+    proximaLabel=`<div style="font-size:9px;color:${dc};margin-top:2px;">📅 Vence ${pFmt} · <strong>${dt}</strong></div>`;
+  }
+  return `<div class="card ${done?'dim':''}">
+    <div class="tr2">
+      <div class="ck ${done?'on':''}" data-id="${p.id}" onclick="togTask('${p.id}',this)"><svg viewBox="0 0 12 10"><polyline points="1,5 4,8 11,1"/></svg></div>
+      <div style="flex:1;min-width:0;">
+        <div class="tk ${done?'st':''}">${p.task}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="tm">${p.sector}</div>
+          <div style="font-size:9px;font-weight:600;color:${respColor};">${respLabel}</div>
+        </div>
+        <div class="tgs"><span class="bdg ${bcls}">${p.period}</span>${p.resp==='ambos'?'<span class="bdg bb2">Compartida</span>':''}</div>
+        ${proximaLabel}
+      </div>
+    </div>
+  </div>`;
+}
+
 function rPrevList(){
   let html='';
-  // For each person: show their own tasks PLUS shared tasks (ambos)
-  ['Diaria','Semanal','Quincenal','Mensual','Bimensual','Trimestral','Cuatrimestral','Semestral','Anual','fecha-especifica'].forEach(per=>{
-    const tasks=prevs.filter(p=>(p.resp===prevView||p.resp==='ambos')&&p.period===per);
-    if(!tasks.length)return;
-    html+=`<div class="sh">${per}</div>`+tasks.map(tCard).join('');
-  });
+  const periods=['Diaria','Semanal','Quincenal','Mensual','Bimensual','Trimestral','Cuatrimestral','Semestral','Anual','fecha-especifica'];
+  if(prevView==='todos'){
+    // All tasks together, sorted by period, responsible shown
+    periods.forEach(per=>{
+      const tasks=prevs.filter(p=>p.period===per);
+      if(!tasks.length)return;
+      html+=`<div class="sh">${per}</div>`+tasks.map(tCardAdmin).join('');
+    });
+  } else {
+    // Executor view: own + shared
+    periods.forEach(per=>{
+      const tasks=prevs.filter(p=>(p.resp===prevView||p.resp==='ambos')&&p.period===per);
+      if(!tasks.length)return;
+      html+=`<div class="sh">${per}</div>`+tasks.map(tCard).join('');
+    });
+  }
   document.getElementById('prev-list').innerHTML=html;attachCks();
 }
 
@@ -1655,13 +1703,13 @@ function rCompras(){
 }
 function openCD(id){
   const c=compras.find(x=>x.id===id);if(!c)return;
-  const canAprob=['semiadmin','admin'].includes(USERS[CU]?.role);
+  const canAprob=['semiadmin','admin','reporter'].includes(USERS[CU]?.role);
   document.getElementById('cd-title').textContent=c.desc;
   document.getElementById('cd-body').innerHTML=`
     <div class="tm"><strong style="color:var(--t1);">Tipo:</strong> ${c.tipo==='extra'?'Extraordinaria':'Regular mensual'}</div>
     <div class="tm"><strong style="color:var(--t1);">Proveedor:</strong> ${c.prov}</div>
     <div class="tm"><strong style="color:var(--t1);">Monto:</strong> ${c.monto||'No especificado'}</div>
-    <div class="tm"><strong style="color:var(--t1);">Fecha:</strong> ${c.fecha}</div>
+    <div class="tm"><strong style="color:var(--t1);">Fecha:</strong> ${(()=>{const d=String(c.fecha||'');if(d.includes('T')){const p=d.split('T')[0].split('-');return `${parseInt(p[2])}/${parseInt(p[1])}/${p[0]}`;}return d;})()}</div>
     <div class="tm"><strong style="color:var(--t1);">Estado:</strong> <span class="bdg ${c.realizada?'bg2':'by'}">${c.estado}</span></div>
     ${c.aprov?.length?`<div class="tm"><strong style="color:var(--t1);">Aprobación:</strong> ${c.aprov.join(', ')}</div>`:''}
     ${c.aprobadaPor?`<div class="tm" style="color:var(--grn);"><strong>Aprobada por:</strong> ${c.aprobadaPor}</div>`:''}
@@ -1980,6 +2028,15 @@ function updateNavBadge(){
     }
   });
 }
+let notifReadTs = parseInt(localStorage.getItem('m4-notif-read')||'0');
+
+function markNotifsRead(){
+  notifReadTs = Date.now();
+  localStorage.setItem('m4-notif-read', String(notifReadTs));
+  // Remove badge
+  document.querySelectorAll('.nav-badge').forEach(b => b.remove());
+}
+
 function buildNotifs(){
   document.getElementById('notif-list').innerHTML=SAMPLE_NOTIFS.map(n=>`<div class="notif-i" style="display:flex;gap:8px;padding:9px 0;border-bottom:0.5px solid var(--b1);"><div style="width:32px;height:32px;border-radius:50%;background:${n.color}20;color:${n.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;">${n.initials}</div><div style="flex:1;"><div style="font-size:11px;font-weight:500;color:var(--t1);">${n.from}</div><div style="font-size:11px;color:#b8b8d8;margin-top:2px;line-height:1.4;">${n.msg}</div><div style="font-size:9px;color:#9898c8;margin-top:2px;">${n.when}</div></div>${n.unread?'<div style="width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:3px;"></div>':''}</div>`).join('');
   const der=corrs.filter(c=>c.status==='DERIVADA');
@@ -2277,6 +2334,7 @@ const scMap={home:'sc-home',prev:'sc-prev',corr:'sc-corr',temp:'sc-temp',compras
 function goSc(id,btn){
   const fab=document.getElementById('btn-historial');
   if(fab)fab.style.display=id==='semaforo'?'flex':'none';
+  if(id==='notifs') markNotifsRead();
   document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
   const el=document.getElementById(scMap[id]||'sc-'+id);if(el)el.classList.add('on');
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
