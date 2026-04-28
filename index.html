@@ -538,7 +538,20 @@ select option{background:#1a1a2a;}
       <select id="aus-who"><option value="david">David Vargas</option><option value="andres">Andrés Patiño</option><option value="ambos">Ambos</option></select>
     </div>
     <div class="f"><label>Motivo</label><select id="aus-motivo"><option>Enfermedad</option><option>Franco</option><option>Vacaciones</option><option>Licencia</option><option>Otro</option></select></div>
-    <div class="f"><label>Observación (opcional)</label><input type="text" id="aus-obs" placeholder="Detalle adicional..."/></div>
+    <div class="f"><label>Días estimados de ausencia</label>
+      <select id="aus-dias">
+        <option value="1">1 día</option>
+        <option value="2">2 días</option>
+        <option value="3">3 días</option>
+        <option value="5">5 días (semana)</option>
+        <option value="7">7 días</option>
+        <option value="10">10 días</option>
+        <option value="15">15 días (quincena)</option>
+        <option value="30">30 días (mes)</option>
+        <option value="0">Sin estimación</option>
+      </select>
+    </div>
+    <div class="f"><label>Observación (opcional)</label><input type="text" id="aus-obs" placeholder="ej: Con certificado médico, vuelve el jueves..."/></div>
     <div class="ma"><button class="bs bs-g" onclick="closeM('mo-ausencia')">Cancelar</button><button class="bs bs-o" onclick="regAusencia()">Registrar</button></div>
   </div>
 </div>
@@ -1974,7 +1987,7 @@ function buildSemaforo(){
 
   html+=`<div class="sh">Ausencias</div>`;
   const aus=ausencias[dk()];
-  html+=aus?`<div class="card lu"><div class="tk">Ausencia hoy: ${aus.who==='ambos'?'David y Andrés':aus.who==='david'?'David Vargas':'Andrés Patiño'}</div><div class="tm">${aus.motivo}${aus.obs?' · '+aus.obs:''}</div></div>`:'<div style="color:#9898c8;font-size:11px;padding:4px 0;">Sin ausencias registradas hoy</div>';
+  html+=aus?`<div class="card lu"><div class="tk">Ausencia hoy: ${aus.who==='ambos'?'David y Andrés':aus.who==='david'?'David Vargas':'Andrés Patiño'}</div><div class="tm">${aus.motivo}${aus.dias&&aus.dias>0?' · '+aus.dias+' día'+(aus.dias>1?'s':''):''}${aus.obs?' · '+aus.obs:''}</div></div>`:'<div style="color:#9898c8;font-size:11px;padding:4px 0;">Sin ausencias registradas hoy</div>';
 
   if(isExec()||isAdmin()){
     html+=`<div class="sh" style="margin-top:12px;"></div><div style="background:var(--s2);border-radius:9px;padding:8px 10px;cursor:pointer;text-align:center;font-size:11px;color:var(--acc);" onclick="openM('mo-ausencia')">+ Registrar ausencia</div>`;
@@ -2032,34 +2045,18 @@ function buildDash(){
 // ════════════════════════════════════════════════════════════════════════════
 // NOTIFS
 // ════════════════════════════════════════════════════════════════════════════
-function updateNavBadge(){
-  const urgCount=corrs.filter(c=>c.urg==='URGENTE'&&c.status!=='RESUELTO').length;
-  const pendDerivs=corrs.filter(c=>c.derivTo&&USERS[CU]&&(c.derivTo===USERS[CU].name||c.derivTo==='Todos')&&c.status!=='RESUELTO').length;
-  const total=urgCount+pendDerivs;
-  // Update Avisos nav badge
-  const nb=document.querySelectorAll('.nb');
-  nb.forEach(b=>{
-    const lbl=b.querySelector('.nl');
-    if(lbl&&lbl.textContent==='Avisos'){
-      let badge=b.querySelector('.nav-badge');
-      if(total>0){
-        if(!badge){badge=document.createElement('div');badge.className='nav-badge';b.style.position='relative';b.appendChild(badge);}
-        badge.textContent=total;
-        badge.style.cssText='position:absolute;top:2px;right:6px;background:var(--red);color:#fff;font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px;';
-      } else if(badge){badge.remove();}
-    }
-  });
-}
 
 function updateNavBadge(){
   const urgCount=corrs.filter(c=>c.urg==='URGENTE'&&c.status!=='RESUELTO').length;
   const pendDerivs=corrs.filter(c=>c.derivTo&&USERS[CU]&&(c.derivTo===USERS[CU].name||c.derivTo==='Todos')&&c.status!=='RESUELTO').length;
   const total=urgCount+pendDerivs;
+  // Only show badge if there are items AND user hasn't read recently (last 30s)
+  const hasUnread = total > 0 && (Date.now() - notifReadTs) > 30000;
   document.querySelectorAll('.nb').forEach(b=>{
     const lbl=b.querySelector('.nl');
     if(lbl&&lbl.textContent==='Avisos'){
       let badge=b.querySelector('.nav-badge');
-      if(total>0){
+      if(hasUnread){
         if(!badge){badge=document.createElement('div');badge.className='nav-badge';b.style.position='relative';b.appendChild(badge);}
         badge.textContent=total;badge.style.cssText='position:absolute;top:2px;right:4px;background:var(--red);color:#fff;font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px;';
       } else if(badge){badge.remove();}
@@ -2216,9 +2213,14 @@ function regAusWrapper(){closeM('mo-admin');setTimeout(()=>openM('mo-ausencia'),
 function regAusencia(){
   const who=document.getElementById('aus-who').value;
   const motivo=document.getElementById('aus-motivo').value;
+  const dias=parseInt(document.getElementById('aus-dias')?.value||'1');
   const obs=document.getElementById('aus-obs').value;
-  const ausDate=dk(); ausencias[ausDate]={who,motivo,obs};
-  save();syncAusencia(ausDate,{who,motivo,obs});buildHome();buildSemaforo();closeM('mo-ausencia');showToast('Ausencia registrada');
+  const ausDate=dk();
+  const data={who,motivo,obs,dias};
+  ausencias[ausDate]=data;
+  save();syncAusencia(ausDate,data);buildHome();buildSemaforo();closeM('mo-ausencia');
+  const diasTxt=dias>0?` · Estimado: ${dias} día${dias>1?'s':''}`:'';
+  showToast(`Ausencia registrada${diasTxt}`);
 }
 function resetAll(){if(confirm('¿Resetear checks del día?')){checks={};save();buildHome();buildPrev();closeM('mo-admin');showToast('Reseteado');}}
 function sU(el){el.closest('.ug2').querySelectorAll('.uo').forEach(o=>o.classList.remove('su'));el.classList.add('su');}
@@ -2232,19 +2234,22 @@ let extrasHoy = JSON.parse(localStorage.getItem('m4-extras')||'[]');
 
 
 function showPendientesHoy(){
-  // Navigate to tasks and highlight pending ones
   const myKey=['david','andres'].includes(CU)?CU:null;
   const pending=myKey
     ? prevs.filter(p=>(p.resp===myKey||p.resp==='ambos')&&p.period==='Diaria'&&!checks[dk()+p.id])
     : prevs.filter(p=>p.period==='Diaria'&&!checks[dk()+p.id]);
-  if(!pending.length){showToast('¡No hay pendientes hoy!');return;}
-  // Go to tasks screen
-  const nb=document.querySelectorAll('.nb');
-  let tareasBtn=null;
-  nb.forEach(b=>{if(b.querySelector('.nl')?.textContent==='Tareas')tareasBtn=b;});
-  goSc('prev',tareasBtn||nb[1]);
-  // Show a temp filter message
-  showToast(`${pending.length} tarea${pending.length>1?'s':''} pendiente${pending.length>1?'s':''} hoy`);
+  if(!pending.length){showToast('Sin pendientes hoy ✓');return;}
+  // Navigate to Tareas screen directly by ID
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('ac'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('act'));
+  const sc=document.getElementById('sc-prev');
+  if(sc)sc.classList.add('ac');
+  // Find and activate tareas nav button
+  document.querySelectorAll('.nb').forEach(b=>{
+    if(b.querySelector('.nl')?.textContent==='Tareas'){b.classList.add('act');}
+  });
+  rPrevList();
+  showToast(`${pending.length} tarea${pending.length>1?'s':''} pendiente${pending.length>1?'s':''} hoy ↓`);
 }
 function toggleWeekly(){
   const list=document.getElementById('weekly-list');
